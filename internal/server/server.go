@@ -337,9 +337,9 @@ func (s *Server) toDocumentURI(path string) DocumentURI {
 	return DocumentURI(string(s.workspaceRootURI) + path)
 }
 
-// fromPosition converts a token.Position to an LSP Position.
-func (s *Server) fromPosition(astFile *gopast.File, position goptoken.Position) Position {
-	tokenFile := s.getProj().Fset.File(astFile.Pos())
+// fromPosition converts a [token.Position] to an LSP Position.
+func fromPosition(proj *gop.Project, astFile *gopast.File, position goptoken.Position) Position {
+	tokenFile := proj.Fset.File(astFile.Pos())
 
 	line := position.Line
 	lineStart := int(tokenFile.LineStart(line))
@@ -354,22 +354,39 @@ func (s *Server) fromPosition(astFile *gopast.File, position goptoken.Position) 
 }
 
 // rangeForASTFilePosition returns a [Range] for the given position in an AST file.
-func (s *Server) rangeForASTFilePosition(astFile *gopast.File, position goptoken.Position) Range {
-	p := s.fromPosition(astFile, position)
+func rangeForASTFilePosition(proj *gop.Project, astFile *gopast.File, position goptoken.Position) Range {
+	p := fromPosition(proj, astFile, position)
 	return Range{Start: p, End: p}
 }
 
+// rangeForASTFileNode returns the [Range] for the given node in the given AST file.
+func rangeForASTFileNode(proj *gop.Project, astFile *gopast.File, node gopast.Node) Range {
+	return Range{
+		Start: fromPosition(proj, astFile, proj.Fset.Position(node.Pos())),
+		End:   fromPosition(proj, astFile, proj.Fset.Position(node.End())),
+	}
+}
+
 // rangeForPos returns the [Range] for the given position.
-func (s *Server) rangeForPos(pos goptoken.Pos) Range {
-	return s.rangeForASTFilePosition(s.posASTFile(pos), s.getProj().Fset.Position(pos))
+func rangeForPos(proj *gop.Project, pos goptoken.Pos) Range {
+	return rangeForASTFilePosition(proj, posASTFile(proj, pos), proj.Fset.Position(pos))
+}
+
+// rangeForPosEnd returns the [Range] for the given pos and end positions.
+func rangeForPosEnd(proj *gop.Project, start, end goptoken.Pos) Range {
+	astFile := posASTFile(proj, start)
+	return Range{
+		Start: fromPosition(proj, astFile, proj.Fset.Position(start)),
+		End:   fromPosition(proj, astFile, proj.Fset.Position(end)),
+	}
 }
 
 // posASTFile returns the AST file for the given position.
-func (s *Server) posASTFile(pos goptoken.Pos) *gopast.File {
-	return getASTPkg(s.getProj()).Files[s.posFilename(pos)]
+func posASTFile(proj *gop.Project, pos goptoken.Pos) *gopast.File {
+	return getASTPkg(proj).Files[posFilename(proj, pos)]
 }
 
 // posFilename returns the filename for the given position.
-func (s *Server) posFilename(pos goptoken.Pos) string {
-	return s.getProj().Fset.Position(pos).Filename
+func posFilename(proj *gop.Project, pos goptoken.Pos) string {
+	return proj.Fset.Position(pos).Filename
 }
