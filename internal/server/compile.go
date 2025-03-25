@@ -84,10 +84,6 @@ type compileResult struct {
 	// seenDiagnostics stores already reported diagnostics to avoid duplicates.
 	seenDiagnostics map[DocumentURI]map[string]struct{}
 
-	// hasErrorSeverityDiagnostic is true if the compile result has any
-	// diagnostics with error severity.
-	hasErrorSeverityDiagnostic bool
-
 	// computedCache is the cache for computed results.
 	computedCache compileResultComputedCache
 
@@ -552,9 +548,6 @@ func (r *compileResult) addDiagnostics(documentURI DocumentURI, diags ...Diagnos
 		seenDiagnostics[fingerprint] = struct{}{}
 
 		r.diagnostics[documentURI] = append(r.diagnostics[documentURI], diag)
-		if diag.Severity == SeverityError {
-			r.hasErrorSeverityDiagnostic = true
-		}
 	}
 }
 
@@ -779,6 +772,12 @@ func (s *Server) compileAt(snapshot *vfs.MapFS) (*compileResult, error) {
 	}
 	handleErr := func(err error) {
 		if typeErr, ok := err.(types.Error); ok {
+			if !typeErr.Pos.IsValid() {
+				// This should never happen. types.Error.Pos is expected to always be valid.
+				// If it's not, it's likely due to a bug in upstream gop/gogen logic.
+				// We panic here to surface the issue instead of silently skipping it.
+				panic(fmt.Errorf("invalid position for types.Error: %w", typeErr))
+			}
 			position := typeErr.Fset.Position(typeErr.Pos)
 			result.addDiagnosticsForSpxFile(position.Filename, Diagnostic{
 				Severity: SeverityError,
