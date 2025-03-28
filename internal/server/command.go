@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/goplus/goxlsw/gop/goputil"
 	"github.com/goplus/goxlsw/internal/util"
 )
 
@@ -114,11 +115,11 @@ func (s *Server) spxGetDefinitions(params []SpxGetDefinitionsParams) ([]SpxDefin
 	astFileScope := getTypeInfo(result.proj).Scopes[astFile]
 
 	// Find the innermost scope contains the position.
-	pos := result.posAt(astFile, param.Position)
+	pos := posAt(result.proj, astFile, param.Position)
 	if !pos.IsValid() {
 		return nil, nil
 	}
-	innermostScope := result.innermostScopeAt(pos)
+	innermostScope := goputil.InnermostScopeAt(result.proj, pos)
 	if innermostScope == nil {
 		return nil, nil
 	}

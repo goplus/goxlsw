@@ -1,6 +1,10 @@
 package server
 
-import "go/types"
+import (
+	"go/types"
+
+	"github.com/goplus/goxlsw/gop/goputil"
+)
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_declaration
 func (s *Server) textDocumentDeclaration(params *DeclarationParams) (any, error) {
@@ -20,21 +24,22 @@ func (s *Server) textDocumentDefinition(params *DefinitionParams) (any, error) {
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
-	obj := getTypeInfo(result.proj).ObjectOf(result.identAtASTFilePosition(astFile, position))
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	obj := getTypeInfo(result.proj).ObjectOf(ident)
 	if !isMainPkgObject(obj) {
 		return nil, nil
 	}
 
-	defIdent := result.defIdentFor(obj)
+	defIdent := goputil.DefIdentFor(result.proj, obj)
 	if defIdent == nil {
 		objPos := obj.Pos()
-		if !result.isInFset(objPos) {
+		if goputil.PosTokenFile(result.proj, objPos) == nil {
 			return nil, nil
 		}
 		return result.locationForPos(objPos), nil
-	} else if !result.isInFset(defIdent.Pos()) {
+	} else if goputil.NodeTokenFile(result.proj, defIdent) == nil {
 		return nil, nil
 	}
 	return result.locationForNode(defIdent), nil
@@ -49,9 +54,10 @@ func (s *Server) textDocumentTypeDefinition(params *TypeDefinitionParams) (any, 
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
-	obj := getTypeInfo(result.proj).ObjectOf(result.identAtASTFilePosition(astFile, position))
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	obj := getTypeInfo(result.proj).ObjectOf(ident)
 	if !isMainPkgObject(obj) {
 		return nil, nil
 	}
@@ -63,7 +69,7 @@ func (s *Server) textDocumentTypeDefinition(params *TypeDefinitionParams) (any, 
 	}
 
 	objPos := named.Obj().Pos()
-	if !result.isInFset(objPos) {
+	if goputil.PosTokenFile(result.proj, objPos) == nil {
 		return nil, nil
 	}
 	return result.locationForPos(objPos), nil

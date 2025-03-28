@@ -17,10 +17,10 @@ func (s *Server) textDocumentReferences(params *ReferenceParams) ([]Location, er
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
-	typeInfo := getTypeInfo(result.proj)
-	obj := typeInfo.ObjectOf(result.identAtASTFilePosition(astFile, position))
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	obj := getTypeInfo(result.proj).ObjectOf(ident)
 	if obj == nil {
 		return nil, nil
 	}
@@ -35,13 +35,13 @@ func (s *Server) textDocumentReferences(params *ReferenceParams) ([]Location, er
 	}
 
 	if params.Context.IncludeDeclaration {
-		defIdent := result.defIdentFor(obj)
+		defIdent := goputil.DefIdentFor(result.proj, obj)
 		if defIdent == nil {
 			objPos := obj.Pos()
-			if result.isInFset(objPos) {
+			if goputil.PosTokenFile(result.proj, objPos) != nil {
 				locations = append(locations, result.locationForPos(objPos))
 			}
-		} else if result.isInFset(defIdent.Pos()) {
+		} else if goputil.NodeTokenFile(result.proj, defIdent) != nil {
 			locations = append(locations, result.locationForNode(defIdent))
 		}
 	}
@@ -51,7 +51,7 @@ func (s *Server) textDocumentReferences(params *ReferenceParams) ([]Location, er
 
 // findReferenceLocations returns all locations where the given object is referenced.
 func (s *Server) findReferenceLocations(result *compileResult, obj types.Object) []Location {
-	refIdents := result.refIdentsFor(obj)
+	refIdents := goputil.RefIdentsFor(result.proj, obj)
 	if len(refIdents) == 0 {
 		return nil
 	}

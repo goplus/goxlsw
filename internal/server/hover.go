@@ -3,6 +3,8 @@ package server
 import (
 	"go/doc"
 	"strings"
+
+	"github.com/goplus/goxlsw/gop/goputil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification#textDocument_hover
@@ -14,7 +16,7 @@ func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
 	if spxResourceRef := result.spxResourceRefAtASTFilePosition(astFile, position); spxResourceRef != nil {
 		return &Hover{
@@ -22,11 +24,11 @@ func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
 				Kind:  Markdown,
 				Value: spxResourceRef.ID.URI().HTML(),
 			},
-			Range: result.rangeForNode(spxResourceRef.Node),
+			Range: rangeForNode(result.proj, spxResourceRef.Node),
 		}, nil
 	}
 
-	ident := result.identAtASTFilePosition(astFile, position)
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
 	if ident == nil {
 		// Check if the position is within an import declaration.
 		// If so, return the package documentation.
@@ -37,7 +39,7 @@ func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
 					Kind:  Markdown,
 					Value: doc.Synopsis(rpkg.Pkg.Doc),
 				},
-				Range: result.rangeForNode(rpkg.Node),
+				Range: rangeForNode(result.proj, rpkg.Node),
 			}, nil
 		}
 		return nil, nil
@@ -57,6 +59,6 @@ func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
 			Kind:  Markdown,
 			Value: hoverContent.String(),
 		},
-		Range: result.rangeForNode(ident),
+		Range: rangeForNode(result.proj, ident),
 	}, nil
 }

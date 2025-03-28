@@ -5,6 +5,7 @@ import (
 
 	gopast "github.com/goplus/gop/ast"
 	goptoken "github.com/goplus/gop/token"
+	"github.com/goplus/goxlsw/gop/goputil"
 	"github.com/goplus/goxlsw/internal/util"
 )
 
@@ -17,10 +18,11 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
+	targetIdent := goputil.IdentAtPosition(result.proj, astFile, position)
 	typeInfo := getTypeInfo(result.proj)
-	targetObj := typeInfo.ObjectOf(result.identAtASTFilePosition(astFile, position))
+	targetObj := typeInfo.ObjectOf(targetIdent)
 	if targetObj == nil {
 		return nil, nil
 	}
@@ -146,7 +148,7 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 		}
 
 		highlights = append(highlights, DocumentHighlight{
-			Range: result.rangeForNode(ident),
+			Range: rangeForNode(result.proj, ident),
 			Kind:  kind,
 		})
 		return true
