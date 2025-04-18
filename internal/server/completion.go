@@ -13,6 +13,7 @@ import (
 	gopscanner "github.com/goplus/gop/scanner"
 	goptoken "github.com/goplus/gop/token"
 	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/goxlsw/gop/goputil"
 	"github.com/goplus/goxlsw/internal/pkgdata"
 	"github.com/goplus/goxlsw/internal/util"
 	"github.com/goplus/goxlsw/internal/vfs"
@@ -29,24 +30,24 @@ func (s *Server) textDocumentCompletion(params *CompletionParams) ([]CompletionI
 		return nil, nil
 	}
 
-	pos := result.posAt(astFile, params.Position)
+	pos := posAt(result.proj, astFile, params.Position)
 	if !pos.IsValid() {
 		return nil, nil
 	}
-	innermostScope := result.innermostScopeAt(pos)
+	innermostScope := goputil.InnermostScopeAt(result.proj, pos)
 	if innermostScope == nil {
 		return nil, nil
 	}
 
 	proj := result.proj
 	ctx := &completionContext{
-		proj:           s.getProj(),
+		proj:           result.proj,
 		itemSet:        newCompletionItemSet(),
 		result:         result,
 		spxFile:        spxFile,
 		astFile:        astFile,
 		astFileScope:   getTypeInfo(proj).Scopes[astFile],
-		tokenFile:      proj.Fset.File(astFile.Pos()),
+		tokenFile:      goputil.NodeTokenFile(proj, astFile),
 		pos:            pos,
 		innermostScope: innermostScope,
 	}
@@ -149,7 +150,7 @@ func (ctx *completionContext) analyze() {
 						ctx.expectedTypes = []types.Type{tv.Type}
 					}
 					if ident, ok := node.Lhs[j].(*gopast.Ident); ok {
-						defIdent := ctx.result.defIdentFor(typeInfo.ObjectOf(ident))
+						defIdent := goputil.DefIdentFor(ctx.proj, typeInfo.ObjectOf(ident))
 						if defIdent != nil {
 							ctx.assignTargets = append(ctx.assignTargets, defIdent)
 						}
@@ -410,7 +411,7 @@ func (ctx *completionContext) collectGeneral() error {
 			if !isExportedOrMainPkgObject(obj) {
 				continue
 			}
-			if defIdent := ctx.result.defIdentFor(obj); defIdent != nil && slices.Contains(ctx.assignTargets, defIdent) {
+			if defIdent := goputil.DefIdentFor(ctx.proj, obj); defIdent != nil && slices.Contains(ctx.assignTargets, defIdent) {
 				continue
 			}
 
@@ -545,7 +546,7 @@ func (ctx *completionContext) collectDot() error {
 				continue
 			}
 
-			recvTypeName := ctx.result.selectorTypeNameForIdent(ctx.result.defIdentFor(method))
+			recvTypeName := ctx.result.selectorTypeNameForIdent(goputil.DefIdentFor(ctx.proj, method))
 			ctx.itemSet.addSpxDefs(GetSpxDefinitionForFunc(method, recvTypeName, ctx.pkgDoc()))
 		}
 	} else if named, ok := typ.(*types.Named); ok && isNamedStructType(named) {
@@ -810,8 +811,8 @@ func (ctx *completionContext) collectStructLit() error {
 			continue
 		}
 
-		selectorTypeName := ctx.result.selectorTypeNameForIdent(ctx.result.defIdentFor(field))
-		forceVar := ctx.result.isDefinedInFirstVarBlock(field)
+		selectorTypeName := ctx.result.selectorTypeNameForIdent(goputil.DefIdentFor(ctx.proj, field))
+		forceVar := goputil.IsDefinedInClassFieldsDecl(ctx.proj, field)
 		spxDef := GetSpxDefinitionForVar(field, selectorTypeName, forceVar, ctx.pkgDoc())
 		spxDef.CompletionItemInsertText = field.Name() + ": ${1:}"
 		spxDef.CompletionItemInsertTextFormat = SnippetTextFormat
