@@ -1,6 +1,10 @@
 package server
 
-import "go/types"
+import (
+	"go/types"
+
+	"github.com/goplus/goxlsw/gop/goputil"
+)
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_implementation
 func (s *Server) textDocumentImplementation(params *ImplementationParams) (any, error) {
@@ -11,10 +15,10 @@ func (s *Server) textDocumentImplementation(params *ImplementationParams) (any, 
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
-	typeInfo := getTypeInfo(result.proj)
-	obj := typeInfo.ObjectOf(result.identAtASTFilePosition(astFile, position))
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	obj := getTypeInfo(result.proj).ObjectOf(ident)
 	if !isMainPkgObject(obj) {
 		return nil, nil
 	}

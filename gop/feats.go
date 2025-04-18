@@ -42,6 +42,8 @@ var supportedFeats = []supportedFeat{
 	{FeatAST, "ast", buildAST, true},
 	{FeatTypeInfo, "typeinfo", buildTypeInfo, false},
 	{FeatPkgDoc, "pkgdoc", buildPkgDoc, false},
+	{FeatSpxResourceSet, "spxResourceSet", buildSpxResourceSet, false},
+	{FeatSpxResourceRefs, "spxResourceRefs", buildSpxResourceRefs, false},
 }
 
 // -----------------------------------------------------------------------------
@@ -143,28 +145,36 @@ func (p *Project) TypeInfo() (pkg *types.Package, info *typesutil.Info, err, ast
 
 // -----------------------------------------------------------------------------
 
-// RangeASTFiles iterates all Go+ AST files.
-func (p *Project) RangeASTFiles(fn func(path string, f *ast.File)) (name string, err error) {
-	var errs scanner.ErrorList
+// RangeParsableFiles iterates all files can be parsed by Go+ AST parser.
+func (p *Project) RangeParsableFiles(fn func(path string)) (name string, err error) {
 	p.RangeFiles(func(path string) bool {
 		switch filepath.Ext(path) { // TODO(xsw): use gopmod
 		case ".spx", ".gop", ".gox":
-			f, e := p.AST(path)
-			if f != nil {
-				if name == "" {
-					name = f.Name.Name
-				}
-				fn(path, f)
-			}
-			if e != nil {
-				if el, ok := e.(scanner.ErrorList); ok {
-					errs = append(errs, el...)
-				} else {
-					errs.Add(token.Position{}, e.Error())
-				}
-			}
+			fn(path)
 		}
 		return true
+	})
+	return
+}
+
+// RangeASTFiles iterates all Go+ AST files.
+func (p *Project) RangeASTFiles(fn func(path string, f *ast.File)) (name string, err error) {
+	var errs scanner.ErrorList
+	p.RangeParsableFiles(func(path string) {
+		f, e := p.AST(path)
+		if f != nil {
+			if name == "" {
+				name = f.Name.Name
+			}
+			fn(path, f)
+		}
+		if e != nil {
+			if el, ok := e.(scanner.ErrorList); ok {
+				errs = append(errs, el...)
+			} else {
+				errs.Add(token.Position{}, e.Error())
+			}
+		}
 	})
 	err = errs.Err()
 	return
