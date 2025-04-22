@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"go/constant"
 	"go/types"
@@ -13,6 +14,8 @@ import (
 	"github.com/goplus/gogen"
 	gopast "github.com/goplus/gop/ast"
 	goptoken "github.com/goplus/gop/token"
+	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/goxlsw/gop/goputil"
 )
 
 // unwrapPointerType returns the underlying type of t. For pointer types, it
@@ -323,21 +326,9 @@ func utf16OffsetToUTF8(s string, utf16Offset int) int {
 	return utf8Bytes
 }
 
-// utf8OffsetToUTF16 converts a UTF-8 offset to a UTF-16 offset in the given string.
-func utf8OffsetToUTF16(s string, utf8Offset int) int {
-	if utf8Offset <= 0 {
-		return 0
-	}
-
-	var utf8Bytes, utf16Units int
-	for _, r := range s {
-		if utf8Bytes >= utf8Offset {
-			break
-		}
-		utf8Bytes += utf8.RuneLen(r)
-		utf16Units += utf16.RuneLen(r)
-	}
-	return utf16Units
+// utf16Offset calculates the UTF-16 offset of the given string.
+func utf16Offset(s string) int {
+	return len(utf16.Encode([]rune(s)))
 }
 
 // positionOffset converts an LSP position (line, character) to a byte offset in the document.
@@ -358,8 +349,8 @@ func positionOffset(content []byte, position Position) int {
 
 	// Find all line start positions in the document
 	lineStarts := []int{0} // First line always starts at position 0
-	for i := 0; i < len(content); i++ {
-		if content[i] == '\n' {
+	for i, b := range content {
+		if b == '\n' {
 			lineStarts = append(lineStarts, i+1) // Next line starts after the newline
 		}
 	}
@@ -392,4 +383,85 @@ func positionOffset(content []byte, position Position) int {
 
 	// Ensure the final offset doesn't exceed the content length
 	return lineOffset + utf8Offset
+}
+
+// fromPosition converts a [goptoken.Position] to a [Position].
+func fromPosition(proj *gop.Project, astFile *gopast.File, position goptoken.Position) Position {
+	tokenFile := goputil.NodeTokenFile(proj, astFile)
+
+	line := position.Line
+	lineStart := int(tokenFile.LineStart(line))
+	relLineStart := lineStart - tokenFile.Base()
+	lineContent := astFile.Code[relLineStart : relLineStart+position.Column-1]
+
+	return Position{
+		Line:      uint32(position.Line - 1),
+		Character: uint32(utf16Offset(string(lineContent))),
+	}
+}
+
+// toPosition converts a [Position] to a [goptoken.Position].
+func toPosition(proj *gop.Project, astFile *gopast.File, position Position) goptoken.Position {
+	tokenFile := goputil.NodeTokenFile(proj, astFile)
+
+	line := min(int(position.Line)+1, tokenFile.LineCount())
+	lineStart := int(tokenFile.LineStart(line))
+	relLineStart := lineStart - tokenFile.Base()
+	lineContent := astFile.Code[relLineStart:]
+	if i := bytes.IndexByte(lineContent, '\n'); i >= 0 {
+		lineContent = lineContent[:i]
+	}
+	utf8Offset := utf16OffsetToUTF8(string(lineContent), int(position.Character))
+	column := utf8Offset + 1
+
+	return goptoken.Position{
+		Filename: tokenFile.Name(),
+		Offset:   relLineStart + utf8Offset,
+		Line:     line,
+		Column:   column,
+	}
+}
+
+// posAt returns the [goptoken.Pos] of the given position in the given AST file.
+func posAt(proj *gop.Project, astFile *gopast.File, position Position) goptoken.Pos {
+	tokenFile := goputil.NodeTokenFile(proj, astFile)
+	if int(position.Line) > tokenFile.LineCount()-1 {
+		return goptoken.Pos(tokenFile.Base() + tokenFile.Size()) // EOF
+	}
+	return tokenFile.Pos(toPosition(proj, astFile, position).Offset)
+}
+
+// rangeForASTFilePosition returns a [Range] for the given [goptoken.Position]
+// in the given AST file.
+func rangeForASTFilePosition(proj *gop.Project, astFile *gopast.File, position goptoken.Position) Range {
+	p := fromPosition(proj, astFile, position)
+	return Range{Start: p, End: p}
+}
+
+// rangeForASTFileNode returns the [Range] for the given node in the given AST file.
+func rangeForASTFileNode(proj *gop.Project, astFile *gopast.File, node gopast.Node) Range {
+	fset := proj.Fset
+	return Range{
+		Start: fromPosition(proj, astFile, fset.Position(node.Pos())),
+		End:   fromPosition(proj, astFile, fset.Position(node.End())),
+	}
+}
+
+// rangeForPos returns the [Range] for the given position.
+func rangeForPos(proj *gop.Project, pos goptoken.Pos) Range {
+	return rangeForASTFilePosition(proj, goputil.PosASTFile(proj, pos), proj.Fset.Position(pos))
+}
+
+// rangeForPosEnd returns the [Range] for the given pos and end positions.
+func rangeForPosEnd(proj *gop.Project, pos, end goptoken.Pos) Range {
+	astFile := goputil.PosASTFile(proj, pos)
+	return Range{
+		Start: fromPosition(proj, astFile, proj.Fset.Position(pos)),
+		End:   fromPosition(proj, astFile, proj.Fset.Position(end)),
+	}
+}
+
+// rangeForNode returns the [Range] for the given node.
+func rangeForNode(proj *gop.Project, node gopast.Node) Range {
+	return rangeForASTFileNode(proj, goputil.NodeASTFile(proj, node), node)
 }
