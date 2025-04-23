@@ -430,6 +430,45 @@ func (r *compileResult) spxDefinitionsForNamedStruct(named *types.Named) (defs [
 	return
 }
 
+// spxDefinitionForField returns the spx definition for the given field and
+// optional selector type name.
+func (r *compileResult) spxDefinitionForField(field *types.Var, selectorTypeName string) SpxDefinition {
+	var (
+		forceVar bool
+		pkgDoc   *pkgdoc.PkgDoc
+	)
+	if defIdent := r.defIdentFor(field); defIdent != nil {
+		if selectorTypeName == "" {
+			selectorTypeName = r.selectorTypeNameForIdent(defIdent)
+		}
+		forceVar = r.isDefinedInFirstVarBlock(field)
+		pkgDoc = getPkgDoc(r.proj)
+	} else {
+		pkg := field.Pkg()
+		pkgDoc, _ = pkgdata.GetPkgDoc(pkg.Path())
+	}
+	return GetSpxDefinitionForVar(field, selectorTypeName, forceVar, pkgDoc)
+}
+
+// spxDefinitionForMethod returns the spx definition for the given method and
+// optional selector type name.
+func (r *compileResult) spxDefinitionForMethod(method *types.Func, selectorTypeName string) SpxDefinition {
+	var pkgDoc *pkgdoc.PkgDoc
+	if defIdent := r.defIdentFor(method); defIdent != nil {
+		if selectorTypeName == "" {
+			selectorTypeName = r.selectorTypeNameForIdent(defIdent)
+		}
+		pkgDoc = getPkgDoc(r.proj)
+	} else {
+		if idx := strings.LastIndex(selectorTypeName, "."); idx >= 0 {
+			selectorTypeName = selectorTypeName[idx+1:]
+		}
+		pkg := method.Pkg()
+		pkgDoc, _ = pkgdata.GetPkgDoc(pkg.Path())
+	}
+	return GetSpxDefinitionForFunc(method, selectorTypeName, pkgDoc)
+}
+
 // isInSpxEventHandler checks if the given position is inside an spx event
 // handler callback.
 func (r *compileResult) isInSpxEventHandler(pos goptoken.Pos) bool {

@@ -521,7 +521,7 @@ func eliminateUnusedLambdaParams(compileResult *compileResult, astFile *gopast.F
 			}
 
 			newParamTypes := make([]*types.Var, lambdaSig.Params().Len()-1)
-			for i := 0; i < lambdaSig.Params().Len()-1; i++ {
+			for i := range lambdaSig.Params().Len() - 1 {
 				newParamTypes[i] = lambdaSig.Params().At(i)
 			}
 			newLambdaSig := types.NewSignatureType(
@@ -626,7 +626,7 @@ func getTypeParamSlice(list *types.TypeParamList) []*types.TypeParam {
 		return nil
 	}
 	slice := make([]*types.TypeParam, list.Len())
-	for i := 0; i < list.Len(); i++ {
+	for i := range list.Len() {
 		slice[i] = list.At(i)
 	}
 	return slice
