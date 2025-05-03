@@ -46,14 +46,13 @@ func (s *Server) textDocumentFormatting(params *DocumentFormattingParams) ([]Tex
 	if lastNewLine >= 0 {
 		lastLineContent = lastLineContent[lastNewLine+1:]
 	}
-	utf16Offset := utf8OffsetToUTF16(string(lastLineContent), len(lastLineContent))
 	return []TextEdit{
 		{
 			Range: Range{
 				Start: Position{Line: 0, Character: 0},
 				End: Position{
 					Line:      uint32(lines),
-					Character: uint32(utf16Offset),
+					Character: uint32(utf16Offset(string(lastLineContent))),
 				},
 			},
 			NewText: string(formatted),

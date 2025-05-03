@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	gopast "github.com/goplus/gop/ast"
+	"github.com/goplus/goxlsw/gop/goputil"
 	"github.com/goplus/goxlsw/internal/util"
 	"github.com/goplus/goxlsw/internal/vfs"
 )
@@ -19,9 +20,9 @@ func (s *Server) textDocumentPrepareRename(params *PrepareRenameParams) (*Range,
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
-	ident := result.identAtASTFilePosition(astFile, position)
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
 	if ident == nil {
 		return nil, nil
 	}
@@ -30,12 +31,12 @@ func (s *Server) textDocumentPrepareRename(params *PrepareRenameParams) (*Range,
 	if !isRenameableObject(obj) {
 		return nil, nil
 	}
-	defIdent := result.defIdentFor(obj)
-	if defIdent == nil || !result.isInFset(defIdent.Pos()) {
+	defIdent := goputil.DefIdentFor(result.proj, obj)
+	if defIdent == nil || goputil.NodeTokenFile(result.proj, defIdent) == nil {
 		return nil, nil
 	}
 
-	return util.ToPtr(result.rangeForNode(ident)), nil
+	return util.ToPtr(rangeForNode(result.proj, ident)), nil
 }
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_rename
@@ -47,7 +48,7 @@ func (s *Server) textDocumentRename(params *RenameParams) (*WorkspaceEdit, error
 	if astFile == nil {
 		return nil, nil
 	}
-	position := result.toPosition(astFile, params.Position)
+	position := toPosition(result.proj, astFile, params.Position)
 
 	if spxResourceRef := result.spxResourceRefAtASTFilePosition(astFile, position); spxResourceRef != nil {
 		return s.spxRenameResourcesWithCompileResult(result, []SpxRenameResourceParams{{
@@ -58,13 +59,13 @@ func (s *Server) textDocumentRename(params *RenameParams) (*WorkspaceEdit, error
 		}})
 	}
 
-	typeInfo := getTypeInfo(result.proj)
-	obj := typeInfo.ObjectOf(result.identAtASTFilePosition(astFile, position))
+	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	obj := getTypeInfo(result.proj).ObjectOf(ident)
 	if !isRenameableObject(obj) {
 		return nil, nil
 	}
-	defIdent := result.defIdentFor(obj)
-	if defIdent == nil || !result.isInFset(defIdent.Pos()) {
+	defIdent := goputil.DefIdentFor(result.proj, obj)
+	if defIdent == nil || goputil.NodeTokenFile(result.proj, defIdent) == nil {
 		return nil, fmt.Errorf("failed to find definition of object %q", obj.Name())
 	}
 
@@ -74,7 +75,7 @@ func (s *Server) textDocumentRename(params *RenameParams) (*WorkspaceEdit, error
 		Changes: map[DocumentURI][]TextEdit{
 			defLoc.URI: {
 				{
-					Range:   result.rangeForNode(defIdent),
+					Range:   rangeForNode(result.proj, defIdent),
 					NewText: params.NewName,
 				},
 			},
@@ -108,8 +109,8 @@ func (s *Server) spxRenameResourceAtRefs(result *compileResult, id SpxResourceID
 			if ident, ok := expr.(*gopast.Ident); ok {
 				// It has to be a constant. So we must find its declaration site and
 				// use the position of its value instead.
-				defIdent := result.defIdentFor(typeInfo.ObjectOf(ident))
-				if defIdent != nil && result.isInFset(defIdent.Pos()) {
+				defIdent := goputil.DefIdentFor(result.proj, typeInfo.ObjectOf(ident))
+				if defIdent != nil && goputil.NodeTokenFile(result.proj, defIdent) != nil {
 					parent, ok := defIdent.Obj.Decl.(*gopast.ValueSpec)
 					if ok && slices.Contains(parent.Names, defIdent) && len(parent.Values) > 0 {
 						nodePos = fset.Position(parent.Values[0].Pos())
@@ -126,11 +127,11 @@ func (s *Server) spxRenameResourceAtRefs(result *compileResult, id SpxResourceID
 		}
 
 		documentURI := result.documentURIs[nodePos.Filename]
-		astFile := result.nodeASTFile(ref.Node)
+		astFile := goputil.NodeASTFile(result.proj, ref.Node)
 		textEdit := TextEdit{
 			Range: Range{
-				Start: result.fromPosition(astFile, nodePos),
-				End:   result.fromPosition(astFile, nodeEnd),
+				Start: fromPosition(result.proj, astFile, nodePos),
+				End:   fromPosition(result.proj, astFile, nodeEnd),
 			},
 			NewText: newName,
 		}
@@ -179,7 +180,7 @@ func (s *Server) spxRenameSpriteResource(result *compileResult, id SpxSpriteReso
 		if vfs.HasSpriteType(result.proj, tv.Type) && tv.Type.String() == "main."+id.SpriteName {
 			documentURI := result.nodeDocumentURI(expr)
 			textEdit := TextEdit{
-				Range:   result.rangeForNode(expr),
+				Range:   rangeForNode(result.proj, expr),
 				NewText: newName,
 			}
 

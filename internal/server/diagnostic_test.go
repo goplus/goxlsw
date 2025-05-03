@@ -2,7 +2,11 @@ package server
 
 import (
 	"testing"
+	"time"
 
+	goptoken "github.com/goplus/gop/token"
+	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/goxlsw/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -235,8 +239,9 @@ var (
 		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}))
 
 		report, err := s.workspaceDiagnostic(&WorkspaceDiagnosticParams{})
-		require.EqualError(t, err, "no valid main.spx file found in main package")
-		require.Nil(t, report)
+		require.NoError(t, err)
+		require.NotNil(t, report)
+		assert.Empty(t, report.Items)
 	})
 
 	t.Run("SoundResourceNotFound", func(t *testing.T) {
@@ -697,4 +702,87 @@ run "assets", {Title: "My Game"}
 			assert.Empty(t, fullReport.Items)
 		}
 	})
+}
+
+func TestServerDiagnose(t *testing.T) {
+	tests := []struct {
+		name           string
+		content        string
+		path           string
+		wantDiagCount  int
+		wantSeverities []protocol.DiagnosticSeverity
+	}{
+		{
+			name:           "import errors",
+			content:        "package main\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}",
+			path:           "/test.gop",
+			wantDiagCount:  1,
+			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
+		},
+		{
+			name:           "syntax error",
+			content:        "package main\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\"\n}", // Missing closing parenthesis
+			path:           "/syntax_error.gop",
+			wantDiagCount:  8,
+			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
+		},
+		{
+			name:           "type error",
+			content:        "package main\n\nfunc main() {\n\tvar x int = \"string\"\n}", // Type mismatch
+			path:           "/type_error.gop",
+			wantDiagCount:  1,
+			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
+		},
+		{
+			name:           "no error",
+			content:        "package main\n\nfunc main() {\n\t}",
+			path:           "/code_error.gop",
+			wantDiagCount:  0,
+			wantSeverities: []protocol.DiagnosticSeverity{},
+		},
+		{
+			name:           "multiple type errors",
+			content:        "package main\n\nfunc main() {\n\tvar x int = \"string\"\n\tvar y bool = 42\n}",
+			path:           "/multiple_errors.gop",
+			wantDiagCount:  2,
+			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup test environment
+			fset := goptoken.NewFileSet()
+			files := make(map[string]gop.File)
+
+			// Create the test file
+			files[tt.path] = &gop.FileImpl{
+				Content: []byte(tt.content),
+				ModTime: time.Now(),
+			}
+
+			// Create a mock Project that returns our predefined errors
+			server := &Server{
+				workspaceRootFS: gop.NewProject(fset, files, gop.FeatAll),
+			}
+
+			// Execute test
+			diags := server.diagnose(server.getProj(), tt.path)
+
+			// for _, d := range diagnostics {
+			// 	t.Logf("%s Diagnostic: %v; Range: %d/%d %d/%d", tt.name, d.Message,
+			// 		d.Range.Start.Line, d.Range.Start.Character, d.Range.End.Line, d.Range.End.Character)
+			// }
+
+			assert.Len(t, diags, tt.wantDiagCount)
+
+			// Check diagnostic severities
+			for i, diag := range diags {
+				if i >= len(tt.wantSeverities) {
+					break
+				}
+				assert.Equal(t, tt.wantSeverities[i], diag.Severity)
+			}
+		})
+	}
 }

@@ -18,12 +18,13 @@ package gop
 
 import (
 	"errors"
-	"go/token"
 	"go/types"
 	"io/fs"
 	"sync"
 	"time"
 
+	"github.com/goplus/gop/ast"
+	"github.com/goplus/gop/token"
 	"github.com/goplus/gop/x/typesutil"
 	"github.com/goplus/mod/gopmod"
 )
@@ -43,7 +44,13 @@ const (
 	// FeatPkgDoc represents to build PkgDoc cache.
 	FeatPkgDoc
 
-	FeatAll = FeatAST | FeatTypeInfo | FeatPkgDoc
+	// FeatSpxResourceSet represents to build SpxResourceSet cache.
+	FeatSpxResourceSet
+
+	// FeatSpxResourceRefs represents to build SpxResourceRefs cache.
+	FeatSpxResourceRefs
+
+	FeatAll = FeatAST | FeatTypeInfo | FeatPkgDoc | FeatSpxResourceSet | FeatSpxResourceRefs
 )
 
 // -----------------------------------------------------------------------------
@@ -311,6 +318,51 @@ func encodeDataOrErr(data any, err error) any {
 		return err
 	}
 	return data
+}
+
+// -----------------------------------------------------------------------------
+
+// IsInFset reports whether the given position exists in the file set.
+func (p *Project) IsInFset(pos token.Pos) bool {
+	return p.Fset.File(pos) != nil
+}
+
+// InnermostScopeAt returns the innermost scope that contains the given
+// position. It returns nil if not found.
+func (p *Project) InnermostScopeAt(pos token.Pos) *types.Scope {
+	_, typeInfo, _, _ := p.TypeInfo()
+	fileScope := typeInfo.Scopes[p.PosASTFile(pos)]
+	if fileScope == nil {
+		return nil
+	}
+	innermostScope := fileScope
+	for _, scope := range typeInfo.Scopes {
+		if scope.Contains(pos) && fileScope.Contains(scope.Pos()) && innermostScope.Contains(scope.Pos()) {
+			innermostScope = scope
+		}
+	}
+	return innermostScope
+}
+
+// PosFilename returns the filename for the given position.
+func (p *Project) PosFilename(pos token.Pos) string {
+	return p.Fset.Position(pos).Filename
+}
+
+// NodeFilename returns the filename for the given node.
+func (p *Project) NodeFilename(node ast.Node) string {
+	return p.PosFilename(node.Pos())
+}
+
+// PosASTFile returns the AST file for the given position.
+func (p *Project) PosASTFile(pos token.Pos) *ast.File {
+	astFile, _ := p.AST(p.PosFilename(pos))
+	return astFile
+}
+
+// NodeASTFile returns the AST file for the given node.
+func (p *Project) NodeASTFile(node ast.Node) *ast.File {
+	return p.PosASTFile(node.Pos())
 }
 
 // -----------------------------------------------------------------------------

@@ -7,8 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
 	"github.com/goplus/goxlsw/gop"
 	"github.com/goplus/goxlsw/internal/analysis"
 	"github.com/goplus/goxlsw/internal/vfs"
@@ -335,41 +333,4 @@ func (s *Server) fromDocumentURI(documentURI DocumentURI) (string, error) {
 // toDocumentURI returns the [DocumentURI] for a relative path.
 func (s *Server) toDocumentURI(path string) DocumentURI {
 	return DocumentURI(string(s.workspaceRootURI) + path)
-}
-
-// fromPosition converts a token.Position to an LSP Position.
-func (s *Server) fromPosition(astFile *gopast.File, position goptoken.Position) Position {
-	tokenFile := s.getProj().Fset.File(astFile.Pos())
-
-	line := position.Line
-	lineStart := int(tokenFile.LineStart(line))
-	relLineStart := lineStart - tokenFile.Base()
-	lineContent := astFile.Code[relLineStart : relLineStart+position.Column-1]
-	utf16Offset := utf8OffsetToUTF16(string(lineContent), position.Column-1)
-
-	return Position{
-		Line:      uint32(position.Line - 1),
-		Character: uint32(utf16Offset),
-	}
-}
-
-// rangeForASTFilePosition returns a [Range] for the given position in an AST file.
-func (s *Server) rangeForASTFilePosition(astFile *gopast.File, position goptoken.Position) Range {
-	p := s.fromPosition(astFile, position)
-	return Range{Start: p, End: p}
-}
-
-// rangeForPos returns the [Range] for the given position.
-func (s *Server) rangeForPos(pos goptoken.Pos) Range {
-	return s.rangeForASTFilePosition(s.posASTFile(pos), s.getProj().Fset.Position(pos))
-}
-
-// posASTFile returns the AST file for the given position.
-func (s *Server) posASTFile(pos goptoken.Pos) *gopast.File {
-	return getASTPkg(s.getProj()).Files[s.posFilename(pos)]
-}
-
-// posFilename returns the filename for the given position.
-func (s *Server) posFilename(pos goptoken.Pos) string {
-	return s.getProj().Fset.Position(pos).Filename
 }

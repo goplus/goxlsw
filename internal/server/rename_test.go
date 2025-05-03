@@ -395,7 +395,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/backdrops/backdrop1"))
 		require.NoError(t, err)
@@ -442,7 +441,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/backdrops/backdrop1"))
 		require.NoError(t, err)
@@ -482,7 +480,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/backdrops/backdrop1"))
 		require.NoError(t, err)
@@ -530,7 +527,6 @@ run "assets", {Title: "My Game"}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/backdrops/backdrop1"))
 		require.NoError(t, err)
@@ -562,7 +558,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sounds/Sound1"))
 		require.NoError(t, err)
@@ -612,7 +607,6 @@ run "assets", {Title: "My Game"}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sounds/Sound1"))
 		require.NoError(t, err)
@@ -644,7 +638,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/Sprite1"))
 		require.NoError(t, err)
@@ -701,7 +694,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/Sprite1"))
 		require.NoError(t, err)
@@ -773,7 +765,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/Sprite1"))
 		require.NoError(t, err)
@@ -806,7 +797,6 @@ func invalidFunc() {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.True(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/Sprite1"))
 		require.NoError(t, err)
@@ -848,7 +838,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/MySprite/costumes/costume1"))
 		require.NoError(t, err)
@@ -898,7 +887,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/MySprite/costumes/costume1"))
 		require.NoError(t, err)
@@ -928,7 +916,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/NonExistentSprite/costumes/costume1"))
 		require.NoError(t, err)
@@ -960,7 +947,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/MySprite/animations/anim1"))
 		require.NoError(t, err)
@@ -1010,7 +996,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/MySprite/animations/anim1"))
 		require.NoError(t, err)
@@ -1040,7 +1025,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/sprites/NonExistentSprite/animations/anim1"))
 		require.NoError(t, err)
@@ -1067,7 +1051,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/widgets/widget1"))
 		require.NoError(t, err)
@@ -1102,7 +1085,6 @@ onStart => {
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
 		require.NoError(t, err)
-		require.False(t, result.hasErrorSeverityDiagnostic)
 
 		id, err := ParseSpxResourceURI(SpxResourceURI("spx://resources/widgets/widget1"))
 		require.NoError(t, err)

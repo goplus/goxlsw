@@ -3,15 +3,11 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"go/types"
 	"time"
 
-	"github.com/goplus/gogen"
-	gopscanner "github.com/goplus/gop/scanner"
 	"github.com/goplus/goxlsw/gop"
 	"github.com/goplus/goxlsw/jsonrpc2"
 	"github.com/goplus/goxlsw/protocol"
-	"github.com/qiniu/x/errors"
 )
 
 // didOpen handles the textDocument/didOpen notification from the LSP client.
@@ -95,22 +91,21 @@ func (s *Server) didModifyFile(changes []FileChange) error {
 	// 1. Update files synchronously
 	s.ModifyFiles(changes)
 
-	// 2. Asynchronously generate and publish diagnostics
+	// 2. Get the project instance at this point
+	proj := s.getProj()
+
+	// 3. Asynchronously generate and publish diagnostics
 	// This allows for quick response while diagnostics computation happens in background
 	go func() {
 		for _, change := range changes {
 			// Convert path to URI for diagnostics
 			uri := s.toDocumentURI(change.Path)
 
-			// Get diagnostics from AST and type checking
-			diagnostics, err := s.getDiagnostics(change.Path)
-			if err != nil {
-				// Log error but continue processing other files
-				continue
-			}
+			// Get diags from AST and type checking
+			diags := s.diagnose(proj, change.Path)
 
 			// Publish diagnostics
-			if err := s.publishDiagnostics(uri, diagnostics); err != nil {
+			if err := s.publishDiagnostics(uri, diags); err != nil {
 				// Log error but continue
 				continue
 			}
@@ -183,89 +178,6 @@ func (s *Server) applyIncrementalChanges(path string, changes []protocol.TextDoc
 	}
 
 	return content, nil
-}
-
-// getDiagnostics generates diagnostic information for a specific file.
-// It performs two checks:
-// 1. AST parsing - reports syntax errors
-// 2. Type checking - reports type errors
-//
-// If AST parsing fails, only syntax errors are returned as diagnostics.
-// If AST parsing succeeds but type checking fails, type errors are returned.
-// Returns a slice of diagnostics and an error (if diagnostic generation failed).
-func (s *Server) getDiagnostics(path string) ([]Diagnostic, error) {
-	var diagnostics []Diagnostic
-
-	proj := s.getProj()
-
-	// 1. Get AST diagnostics
-	// Parse the file and check for syntax errors
-	astFile, err := proj.AST(path)
-	if err != nil {
-		var (
-			errorList gopscanner.ErrorList
-			codeError *gogen.CodeError
-		)
-		if errors.As(err, &errorList) {
-			// Handle parse errors.
-			for _, e := range errorList {
-				diagnostics = append(diagnostics, Diagnostic{
-					Severity: SeverityError,
-					Range:    s.rangeForASTFilePosition(astFile, e.Pos),
-					Message:  e.Msg,
-				})
-			}
-		} else if errors.As(err, &codeError) {
-			// Handle code generation errors.
-			diagnostics = append(diagnostics, Diagnostic{
-				Severity: SeverityError,
-				Range:    s.rangeForPos(codeError.Pos),
-				Message:  codeError.Error(),
-			})
-		} else {
-			// Handle unknown errors (including recovered panics).
-			diagnostics = append(diagnostics, Diagnostic{
-				Severity: SeverityError,
-				Message:  fmt.Sprintf("failed to parse spx file: %v", err),
-			})
-		}
-	}
-
-	if astFile == nil {
-		return diagnostics, nil
-	}
-
-	astFilePos := proj.Fset.Position(astFile.Pos())
-
-	handleErr := func(err error) {
-		if typeErr, ok := err.(types.Error); ok {
-			position := typeErr.Fset.Position(typeErr.Pos)
-			if position.Filename == astFilePos.Filename {
-				diagnostics = append(diagnostics, Diagnostic{
-					Severity: SeverityError,
-					Range:    s.rangeForPos(typeErr.Pos),
-					Message:  typeErr.Msg,
-				})
-			}
-		}
-	}
-
-	// 2. Get type checking diagnostics
-	// Perform type checking on the file
-	_, _, err, _ = proj.TypeInfo()
-	if err != nil {
-		// Add type checking errors to diagnostics
-		switch err := err.(type) {
-		case errors.List:
-			for _, e := range err {
-				handleErr(e)
-			}
-		default:
-			handleErr(err)
-		}
-	}
-
-	return diagnostics, nil
 }
 
 // FileChange represents a file change.
