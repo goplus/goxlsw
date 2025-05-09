@@ -361,7 +361,7 @@ func positionOffset(content []byte, position Position) int {
 
 	// Find all line start positions in the document
 	lineStarts := []int{0} // First line always starts at position 0
-	for i := 0; i < len(content); i++ {
+	for i := range len(content) {
 		if content[i] == '\n' {
 			lineStarts = append(lineStarts, i+1) // Next line starts after the newline
 		}

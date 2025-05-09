@@ -539,14 +539,19 @@ func (ctx *completionContext) collectDot() error {
 	}
 
 	if iface, ok := typ.Underlying().(*types.Interface); ok {
-		for i := 0; i < iface.NumMethods(); i++ {
+		for i := range iface.NumMethods() {
 			method := iface.Method(i)
 			if !isExportedOrMainPkgObject(method) {
 				continue
 			}
 
-			recvTypeName := ctx.result.selectorTypeNameForIdent(ctx.result.defIdentFor(method))
-			ctx.itemSet.addSpxDefs(GetSpxDefinitionForFunc(method, recvTypeName, ctx.pkgDoc()))
+			var recvTypeName string
+			if defIdent := ctx.result.defIdentFor(method); defIdent == nil {
+				recvTypeName = iface.String()
+			}
+
+			spxDef := ctx.result.spxDefinitionForMethod(method, recvTypeName)
+			ctx.itemSet.addSpxDefs(spxDef)
 		}
 	} else if named, ok := typ.(*types.Named); ok && isNamedStructType(named) {
 		ctx.itemSet.addSpxDefs(ctx.result.spxDefinitionsForNamedStruct(named)...)
@@ -801,7 +806,7 @@ func (ctx *completionContext) collectStructLit() error {
 	}
 
 	// Add unused fields.
-	for i := 0; i < ctx.expectedStructType.NumFields(); i++ {
+	for i := range ctx.expectedStructType.NumFields() {
 		field := ctx.expectedStructType.Field(i)
 		if !isExportedOrMainPkgObject(field) {
 			continue
@@ -810,9 +815,7 @@ func (ctx *completionContext) collectStructLit() error {
 			continue
 		}
 
-		selectorTypeName := ctx.result.selectorTypeNameForIdent(ctx.result.defIdentFor(field))
-		forceVar := ctx.result.isDefinedInFirstVarBlock(field)
-		spxDef := GetSpxDefinitionForVar(field, selectorTypeName, forceVar, ctx.pkgDoc())
+		spxDef := ctx.result.spxDefinitionForField(field, "")
 		spxDef.CompletionItemInsertText = field.Name() + ": ${1:}"
 		spxDef.CompletionItemInsertTextFormat = SnippetTextFormat
 		ctx.itemSet.addSpxDefs(spxDef)
