@@ -444,9 +444,9 @@ var (
 	})
 
 	// GetSpxColorType returns the [spx.Color] type.
-	GetSpxColorType = sync.OnceValue(func() *types.Alias {
+	GetSpxColorType = sync.OnceValue(func() *types.Named {
 		spxPkg := GetSpxPkg()
-		return spxPkg.Scope().Lookup("Color").Type().(*types.Alias)
+		return spxPkg.Scope().Lookup("Color").Type().(*types.Named)
 	})
 
 	// GetSpxEffectKindType returns the [spx.EffectKind] type.
@@ -499,6 +499,18 @@ var (
 	GetSpxRGBAFunc = sync.OnceValue(func() *types.Func {
 		spxPkg := GetSpxPkg()
 		return spxPkg.Scope().Lookup("RGBA").(*types.Func)
+	})
+
+	// GetSpxHSBFunc returns the [spx.HSB] type.
+	GetSpxHSBFunc = sync.OnceValue(func() *types.Func {
+		spxPkg := GetSpxPkg()
+		return spxPkg.Scope().Lookup("HSB").(*types.Func)
+	})
+
+	// GetSpxHSBAFunc returns the [spx.HSBA] type.
+	GetSpxHSBAFunc = sync.OnceValue(func() *types.Func {
+		spxPkg := GetSpxPkg()
+		return spxPkg.Scope().Lookup("HSBA").(*types.Func)
 	})
 )
 

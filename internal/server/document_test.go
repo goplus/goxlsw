@@ -179,13 +179,6 @@ onStart => {
 		})
 		assert.Contains(t, linksForMySpriteSpx, DocumentLink{
 			Range: Range{
-				Start: Position{Line: 2, Character: 1},
-				End:   Position{Line: 2, Character: 5},
-			},
-			Target: toURI("gop:github.com/goplus/spx?Game.play#3"),
-		})
-		assert.Contains(t, linksForMySpriteSpx, DocumentLink{
-			Range: Range{
 				Start: Position{Line: 4, Character: 1},
 				End:   Position{Line: 4, Character: 9},
 			},

@@ -556,8 +556,9 @@ onStart => {
 	play Sound1
 }
 `),
-			"assets/index.json":               []byte(`{}`),
-			"assets/sounds/Sound1/index.json": []byte(`{"path":"sound1.wav"}`),
+			"assets/index.json":                  []byte(`{}`),
+			"assets/sprites/MySprite/index.json": []byte(`{}`),
+			"assets/sounds/Sound1/index.json":    []byte(`{"path":"sound1.wav"}`),
 		}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		result, err := s.compile()
