@@ -445,11 +445,11 @@ type SpxInputTypedValue =
   | { type: SpxInputType.SpxResourceName; value: ResourceURI }
   | { type: SpxInputType.SpxDirection; value: number }
   | { type: SpxInputType.SpxColor; value: [r: number, g: number, b: number, a: number] }
-  | { type: SpxInputType.SpxEffectKind; value: number }
-  | { type: SpxInputType.SpxKey; value: number }
-  | { type: SpxInputType.SpxPlayAction; value: number }
-  | { type: SpxInputType.SpxSpecialObj; value: number }
-  | { type: SpxInputType.SpxRotationStyle; value: number }
+  | { type: SpxInputType.SpxEffectKind; value: string }
+  | { type: SpxInputType.SpxKey; value: string }
+  | { type: SpxInputType.SpxPlayAction; value: string }
+  | { type: SpxInputType.SpxSpecialObj; value: string }
+  | { type: SpxInputType.SpxRotationStyle; value: string }
   | { type: SpxInputType.Unknown; value: void }
 ```
 

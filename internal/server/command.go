@@ -624,7 +624,7 @@ func createValueInputSlotFromIdent(result *compileResult, ident *gopast.Ident, d
 		SpxInputTypeSpecialObj,
 		SpxInputTypeRotationStyle:
 		obj := typeInfo.ObjectOf(ident)
-		if !isSpxPkgObject(obj) {
+		if obj != nil && !isSpxPkgObject(obj) {
 			break
 		}
 		cnst, ok := obj.(*types.Const)
@@ -632,7 +632,13 @@ func createValueInputSlotFromIdent(result *compileResult, ident *gopast.Ident, d
 			break
 		}
 		input.Kind = SpxInputKindInPlace
-		input.Value, _ = strconv.ParseInt(cnst.Val().ExactString(), 0, 64)
+		switch input.Type {
+		case SpxInputTypeDirection,
+			SpxInputTypeColor:
+			input.Value, _ = strconv.ParseInt(cnst.Val().ExactString(), 0, 64)
+		default:
+			input.Value = cnst.Name()
+		}
 		input.Name = ""
 	}
 
@@ -782,13 +788,9 @@ func createValueInputSlotFromColorFuncCall(result *compileResult, callExpr *gopa
 // isSpxColorFunc checks if the fun is an spx color function.
 func isSpxColorFunc(fun *types.Func) bool {
 	switch fun {
-	case GetSpxRGBFunc(), GetSpxRGBAFunc():
+	case GetSpxRGBFunc(), GetSpxRGBAFunc(),
+		GetSpxHSBFunc(), GetSpxHSBAFunc():
 		return true
-	default:
-		switch fun.Name() {
-		case "HSB", "HSBA":
-			return true
-		}
 	}
 	return false
 }

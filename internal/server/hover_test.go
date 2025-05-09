@@ -61,7 +61,7 @@ onStart => {
 	clone
 	imagePoint.X = 100
 }
-onTouchStart ["MySprite"], => {}
+onTouchStart "MySprite", => {}
 `),
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume1"}]}`),
@@ -459,8 +459,8 @@ onTouchStart ["MySprite"], => {}
 				Value: "<resource-preview resource=\"spx://resources/sprites/MySprite\" />\n",
 			},
 			Range: Range{
-				Start: Position{Line: 8, Character: 14},
-				End:   Position{Line: 8, Character: 24},
+				Start: Position{Line: 8, Character: 13},
+				End:   Position{Line: 8, Character: 23},
 			},
 		}, onTouchStartFirstArgHover)
 	})

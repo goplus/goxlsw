@@ -264,7 +264,8 @@ onStart => {
 	play Sound2
 }
 `),
-			"assets/index.json": []byte(`{}`),
+			"assets/index.json":                  []byte(`{}`),
+			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 
@@ -628,7 +629,7 @@ run "assets", {Title: "My Game"}
 import "image/color"
 
 onStart => {
-	touchingColor color.RGBA{0, 0, 0, 0}
+	touchingColor RGBA(0, 0, 0, 0)
 }
 `),
 			"assets/index.json":                  []byte(`{}`),

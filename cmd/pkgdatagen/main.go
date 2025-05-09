@@ -146,7 +146,7 @@ var stdPkgPaths = []string{
 	"github.com/qiniu/x/stringutil",
 
 	"github.com/goplus/spx",
-	"github.com/hajimehoshi/ebiten/v2",
+	"github.com/goplus/spx/pkg/gdspx/pkg/engine",
 }
 
 // generate generates the package data file containing the exported symbols of
