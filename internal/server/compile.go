@@ -778,7 +778,7 @@ func (s *Server) compileAt(snapshot *vfs.MapFS) (*compileResult, error) {
 		return nil, fmt.Errorf("failed to import classes: %w", err)
 	}
 	handleErr := func(err error) {
-		if typeErr, ok := err.(types.Error); ok {
+		if typeErr, ok := err.(types.Error); ok && typeErr.Pos != goptoken.NoPos {
 			position := typeErr.Fset.Position(typeErr.Pos)
 			result.addDiagnosticsForSpxFile(position.Filename, Diagnostic{
 				Severity: SeverityError,

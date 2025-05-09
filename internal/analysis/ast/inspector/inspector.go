@@ -172,7 +172,9 @@ func traverse(files []*ast.File) []event {
 	// This makes traverse faster by 4x (!).
 	var extent int
 	for _, f := range files {
-		extent += int(f.End() - f.Pos())
+		if f.End() >= f.Pos() {
+			extent += int(f.End() - f.Pos())
+		}
 	}
 	// This estimate is based on the net/http package.
 	capacity := extent * 33 / 100
