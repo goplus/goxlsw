@@ -2,13 +2,14 @@ package server
 
 import (
 	"go/types"
+	"slices"
 
 	gopast "github.com/goplus/gop/ast"
 	goptoken "github.com/goplus/gop/token"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_inlayHint
-func (s *Server) textDocumentInlayHint(params *InlayHintParams) ([]InlayHint, error) {
+func (s *Server) textDocumentInlayHint(params *InlayHintParams) (hints []InlayHint, err error) {
 	result, _, astFile, err := s.compileAndGetASTFileForDocumentURI(params.TextDocument.URI)
 	if err != nil {
 		return nil, err
@@ -16,6 +17,19 @@ func (s *Server) textDocumentInlayHint(params *InlayHintParams) ([]InlayHint, er
 	if astFile == nil {
 		return nil, nil
 	}
+
+	cacheKey := inlayHintsCacheKey{
+		URI:   params.TextDocument.URI,
+		Range: params.Range,
+	}
+	if hintsIface, ok := result.computedCache.inlayHints.Load(cacheKey); ok {
+		return hintsIface.([]InlayHint), nil
+	}
+	defer func() {
+		if err == nil {
+			result.computedCache.inlayHints.Store(cacheKey, slices.Clip(hints))
+		}
+	}()
 
 	rangeStart := result.posAt(astFile, params.Range.Start)
 	rangeEnd := result.posAt(astFile, params.Range.End)
