@@ -108,12 +108,24 @@ type compileResultComputedCache struct {
 
 	// semanticTokens stores semantic tokens for each document URI.
 	semanticTokens sync.Map // map[DocumentURI][]uint32
+
+	// inlayHints stores inlay hints for each document URI.
+	inlayHints sync.Map // map[inlayHintsCacheKey][]InlayHint
+
+	// spxIntputSlots stores spx input slots for each document URI.
+	spxIntputSlots sync.Map // map[DocumentURI][]SpxInputSlot
 }
 
 // astFileLine represents an AST file line.
 type astFileLine struct {
 	astFile *gopast.File
 	line    int
+}
+
+// inlayHintsCacheKey represents the cache key for inlay hints.
+type inlayHintsCacheKey struct {
+	URI   DocumentURI
+	Range Range
 }
 
 // newCompileResult creates a new [compileResult].

@@ -205,7 +205,7 @@ func (s *Server) spxGetDefinitions(params []SpxGetDefinitionsParams) ([]SpxDefin
 }
 
 // spxGetInputSlots gets input slots in a document.
-func (s *Server) spxGetInputSlots(params []SpxGetInputSlotsParams) ([]SpxInputSlot, error) {
+func (s *Server) spxGetInputSlots(params []SpxGetInputSlotsParams) (slots []SpxInputSlot, err error) {
 	if l := len(params); l == 0 {
 		return nil, nil
 	} else if l > 1 {
@@ -220,6 +220,15 @@ func (s *Server) spxGetInputSlots(params []SpxGetInputSlotsParams) ([]SpxInputSl
 	if astFile == nil {
 		return nil, nil
 	}
+
+	if slotsIface, ok := result.computedCache.spxIntputSlots.Load(param.TextDocument.URI); ok {
+		return slotsIface.([]SpxInputSlot), nil
+	}
+	defer func() {
+		if err == nil {
+			result.computedCache.spxIntputSlots.Store(param.TextDocument.URI, slices.Clip(slots))
+		}
+	}()
 
 	return findInputSlots(result, astFile), nil
 }
