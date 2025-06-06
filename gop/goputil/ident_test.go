@@ -23,10 +23,145 @@ import (
 
 	"github.com/goplus/gop/ast"
 	"github.com/goplus/gop/token"
+	"github.com/goplus/gop/x/typesutil"
 	"github.com/goplus/goxlsw/gop"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestResolveIdentFromNode(t *testing.T) {
+	t.Run("NilTypeInfo", func(t *testing.T) {
+		ident := &ast.Ident{Name: "test"}
+		assert.Nil(t, ResolveIdentFromNode(nil, ident))
+	})
+
+	t.Run("NilNode", func(t *testing.T) {
+		proj := gop.NewProject(nil, map[string]gop.File{
+			"main.gop": file("var x = 1"),
+		}, gop.FeatAll)
+		_, typeInfo, _, _ := proj.TypeInfo()
+
+		assert.Nil(t, ResolveIdentFromNode(typeInfo, nil))
+	})
+
+	t.Run("IdentifierNode", func(t *testing.T) {
+		ident := &ast.Ident{Name: "testIdent"}
+		proj := gop.NewProject(nil, map[string]gop.File{
+			"main.gop": file("var x = 1"),
+		}, gop.FeatAll)
+		_, typeInfo, _, _ := proj.TypeInfo()
+
+		assert.Equal(t, ident, ResolveIdentFromNode(typeInfo, ident))
+	})
+
+	t.Run("BranchStmtWithFunction", func(t *testing.T) {
+		labelIdent := &ast.Ident{
+			NamePos: token.Pos(15),
+			Name:    "label",
+		}
+		stmt := &ast.BranchStmt{
+			Tok:    token.GOTO,
+			TokPos: token.Pos(10),
+			Label:  labelIdent,
+		}
+
+		// Create ident that matches position (TokPos=10, "goto" has length 4, so End=14).
+		gotoIdent := &ast.Ident{
+			NamePos: token.Pos(10),
+			Name:    "goto",
+		}
+
+		pkg := types.NewPackage("test", "test")
+		labelVar := types.NewVar(token.NoPos, pkg, "label", types.Typ[types.Int])
+		sig := types.NewSignatureType(nil, nil, nil, nil, nil, false)
+		fun := types.NewFunc(token.NoPos, pkg, "goto", sig)
+
+		typeInfo := &typesutil.Info{
+			Defs: map[*ast.Ident]types.Object{
+				labelIdent: labelVar, // Not a label.
+			},
+			Uses: map[*ast.Ident]types.Object{
+				gotoIdent: fun, // Is a function.
+			},
+		}
+
+		got := ResolveIdentFromNode(typeInfo, stmt)
+		require.NotNil(t, got)
+		assert.Equal(t, gotoIdent, got)
+		assert.Equal(t, "goto", got.Name)
+	})
+
+	t.Run("BranchStmtWithoutFunction", func(t *testing.T) {
+		labelIdent := &ast.Ident{
+			NamePos: token.Pos(15),
+			Name:    "label",
+		}
+		stmt := &ast.BranchStmt{
+			Tok:    token.GOTO,
+			TokPos: token.Pos(10),
+			Label:  labelIdent,
+		}
+
+		// Create ident that matches position but is not a function.
+		gotoIdent := &ast.Ident{
+			NamePos: token.Pos(10),
+			Name:    "goto",
+		}
+
+		pkg := types.NewPackage("test", "test")
+		labelVar := types.NewVar(token.NoPos, pkg, "label", types.Typ[types.Int])
+		gotoVar := types.NewVar(token.NoPos, pkg, "goto", types.Typ[types.Int])
+
+		typeInfo := &typesutil.Info{
+			Defs: map[*ast.Ident]types.Object{
+				labelIdent: labelVar, // Not a label.
+			},
+			Uses: map[*ast.Ident]types.Object{
+				gotoIdent: gotoVar, // Not a function.
+			},
+		}
+
+		assert.Nil(t, ResolveIdentFromNode(typeInfo, stmt))
+	})
+
+	t.Run("BranchStmtWithNoMatchingIdent", func(t *testing.T) {
+		labelIdent := &ast.Ident{
+			NamePos: token.Pos(15),
+			Name:    "label",
+		}
+		stmt := &ast.BranchStmt{
+			Tok:    token.GOTO,
+			TokPos: token.Pos(10),
+			Label:  labelIdent,
+		}
+
+		pkg := types.NewPackage("test", "test")
+		labelVar := types.NewVar(token.NoPos, pkg, "label", types.Typ[types.Int])
+
+		typeInfo := &typesutil.Info{
+			Defs: map[*ast.Ident]types.Object{
+				labelIdent: labelVar, // Not a label.
+			},
+			Uses: map[*ast.Ident]types.Object{},
+		}
+
+		assert.Nil(t, ResolveIdentFromNode(typeInfo, stmt))
+	})
+
+	t.Run("UnsupportedNodeType", func(t *testing.T) {
+		lit := &ast.BasicLit{
+			Kind:  token.STRING,
+			Value: `"test"`,
+		}
+
+		proj := gop.NewProject(nil, map[string]gop.File{
+			"main.gop": file("var x = 1"),
+		}, gop.FeatAll)
+		_, typeInfo, _, _ := proj.TypeInfo()
+
+		assert.Nil(t, ResolveIdentFromNode(typeInfo, lit))
+	})
+}
 
 func TestIdentsAtLine(t *testing.T) {
 	proj := gop.NewProject(nil, map[string]gop.File{
