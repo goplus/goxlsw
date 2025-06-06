@@ -21,8 +21,31 @@ import (
 
 	"github.com/goplus/gop/ast"
 	"github.com/goplus/gop/token"
+	"github.com/goplus/gop/x/typesutil"
 	"github.com/goplus/goxlsw/gop"
 )
+
+// ResolveIdentFromNode resolves an identifier from the given node. It returns
+// the node directly if it's an identifier, otherwise uses the type system to
+// determine if it truly represents an identifier, such as the `Sprite.Goto`
+// method call expression in spx.
+func ResolveIdentFromNode(typeInfo *typesutil.Info, node ast.Node) *ast.Ident {
+	if typeInfo == nil || node == nil {
+		return nil
+	}
+
+	switch node := node.(type) {
+	case *ast.Ident:
+		return node
+	case *ast.BranchStmt:
+		callExpr := CreateCallExprFromBranchStmt(typeInfo, node)
+		if callExpr != nil {
+			ident, _ := callExpr.Fun.(*ast.Ident)
+			return ident
+		}
+	}
+	return nil
+}
 
 // IdentsAtLine returns the identifiers at the given line in the given AST file.
 func IdentsAtLine(proj *gop.Project, astFile *ast.File, line int) (idents []*ast.Ident) {
@@ -77,11 +100,24 @@ func DefIdentFor(proj *gop.Project, obj types.Object) *ast.Ident {
 	if obj == nil {
 		return nil
 	}
+
+	objPos := obj.Pos()
+	if !objPos.IsValid() {
+		return nil
+	}
+	astFile := PosASTFile(proj, objPos)
+	if astFile == nil {
+		return nil
+	}
 	_, typeInfo, _, _ := proj.TypeInfo()
-	for ident, o := range typeInfo.Defs {
-		if o == obj {
-			return ident
-		}
+
+	path, exact := PathEnclosingInterval(astFile, objPos, objPos)
+	if !exact {
+		return nil
+	}
+	ident := ResolveIdentFromNode(typeInfo, path[0])
+	if ident != nil && !ident.Implicit() && typeInfo.ObjectOf(ident) == obj {
+		return ident
 	}
 	return nil
 }

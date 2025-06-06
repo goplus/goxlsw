@@ -47,7 +47,7 @@ func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) (links []D
 	typeInfo := getTypeInfo(result.proj)
 	links = slices.Grow(links, len(typeInfo.Defs)+len(typeInfo.Uses))
 	addLinksForIdent := func(ident *gopast.Ident) {
-		if goputil.NodeFilename(result.proj, ident) != spxFile {
+		if ident.Implicit() || goputil.NodeFilename(result.proj, ident) != spxFile {
 			return
 		}
 		if spxDefs := result.spxDefinitionsForIdent(ident); spxDefs != nil {
