@@ -1,7 +1,6 @@
 package vfs
 
 import (
-	"go/types"
 	"io/fs"
 	"path"
 	"sort"
@@ -24,19 +23,6 @@ func RangeSpriteNames(rootFS *MapFS, f func(name string) bool) {
 		}
 		return true
 	})
-}
-
-// HasSpriteType checks if there is specified sprite type.
-func HasSpriteType(rootFS *MapFS, typ types.Type) (has bool) {
-	pkg, _, _, _ := rootFS.TypeInfo()
-	RangeSpriteNames(rootFS, func(name string) bool {
-		if obj := pkg.Scope().Lookup(name); obj != nil && obj.Type() == typ {
-			has = true
-			return false
-		}
-		return true
-	})
-	return
 }
 
 // ListSpxFiles returns a list of .spx files in the rootFS.

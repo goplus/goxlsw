@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	xgoast "github.com/goplus/xgo/ast"
-	"github.com/goplus/xgolsw/internal/vfs"
 	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
@@ -183,7 +182,7 @@ func (s *Server) spxRenameSpriteResource(result *compileResult, id SpxSpriteReso
 		if expr == nil || !expr.Pos().IsValid() || !tv.IsType() || tv.Type == nil {
 			continue
 		}
-		if vfs.HasSpriteType(result.proj, tv.Type) && tv.Type.String() == "main."+id.SpriteName {
+		if result.hasSpxSpriteType(tv.Type) && tv.Type.String() == "main."+id.SpriteName {
 			documentURI := s.nodeDocumentURI(result.proj, expr)
 			textEdit := TextEdit{
 				Range:   RangeForNode(result.proj, expr),

@@ -9,7 +9,7 @@ import (
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification#textDocument_documentLink
-func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) (links []DocumentLink, err error) {
+func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) ([]DocumentLink, error) {
 	result, spxFile, astFile, err := s.compileAndGetASTFileForDocumentURI(params.TextDocument.URI)
 	if err != nil {
 		return nil, err
@@ -18,17 +18,8 @@ func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) (links []D
 		return nil, nil
 	}
 
-	if linksIface, ok := result.computedCache.documentLinks.Load(params.TextDocument.URI); ok {
-		return linksIface.([]DocumentLink), nil
-	}
-	defer func() {
-		if err == nil {
-			result.computedCache.documentLinks.Store(params.TextDocument.URI, slices.Clip(links))
-		}
-	}()
-
 	// Add links for spx resource references.
-	links = slices.Grow(links, len(result.spxResourceRefs))
+	links := make([]DocumentLink, 0, len(result.spxResourceRefs))
 	for _, spxResourceRef := range result.spxResourceRefs {
 		if xgoutil.NodeFilename(result.proj, spxResourceRef.Node) != spxFile {
 			continue
@@ -68,7 +59,7 @@ func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) (links []D
 		addLinksForIdent(ident)
 	}
 	sortDocumentLinks(links)
-	return
+	return links, nil
 }
 
 // sortDocumentLinks sorts the given document links in a stable manner.

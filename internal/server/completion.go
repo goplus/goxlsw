@@ -15,7 +15,6 @@ import (
 	xgotoken "github.com/goplus/xgo/token"
 	"github.com/goplus/xgo/x/typesutil"
 	"github.com/goplus/xgolsw/internal/pkgdata"
-	"github.com/goplus/xgolsw/internal/vfs"
 	"github.com/goplus/xgolsw/pkgdoc"
 	"github.com/goplus/xgolsw/xgo"
 	"github.com/goplus/xgolsw/xgo/xgoutil"
@@ -829,7 +828,7 @@ func (ctx *completionContext) getSpxSpriteResource() *SpxSpriteResource {
 	if named == GetSpxSpriteType() {
 		return ctx.result.spxResourceSet.sprites[ident.Name]
 	}
-	if vfs.HasSpriteType(ctx.proj, named) {
+	if ctx.result.hasSpxSpriteType(named) {
 		return ctx.result.spxResourceSet.sprites[obj.Name()]
 	}
 	return nil

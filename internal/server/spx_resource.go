@@ -83,13 +83,6 @@ type SpxResourceSet struct {
 
 // NewSpxResourceSet creates a new spx resource set.
 func NewSpxResourceSet(rootFS vfs.SubFS) (*SpxResourceSet, error) {
-	set := &SpxResourceSet{
-		backdrops: make(map[string]*SpxBackdropResource),
-		sounds:    make(map[string]*SpxSoundResource),
-		sprites:   make(map[string]*SpxSpriteResource),
-		widgets:   make(map[string]*SpxWidgetResource),
-	}
-
 	// Read and parse the main index.json for backdrops and widgets.
 	metadata, err := rootFS.ReadFile("index.json")
 	if err != nil {
@@ -105,17 +98,19 @@ func NewSpxResourceSet(rootFS vfs.SubFS) (*SpxResourceSet, error) {
 	}
 
 	// Process backdrops.
+	backdrops := make(map[string]*SpxBackdropResource, len(assets.Backdrops))
 	for _, backdrop := range assets.Backdrops {
 		backdrop.ID = SpxBackdropResourceID{BackdropName: backdrop.Name}
-		set.backdrops[backdrop.Name] = &backdrop
+		backdrops[backdrop.Name] = &backdrop
 	}
 
 	// Process widgets from zorder.
+	widgets := make(map[string]*SpxWidgetResource, len(assets.Zorder))
 	for _, item := range assets.Zorder {
 		var widget SpxWidgetResource
 		if err := json.Unmarshal(item, &widget); err == nil && widget.Name != "" {
 			widget.ID = SpxWidgetResourceID{WidgetName: widget.Name}
-			set.widgets[widget.Name] = &widget
+			widgets[widget.Name] = &widget
 		}
 	}
 
@@ -124,6 +119,7 @@ func NewSpxResourceSet(rootFS vfs.SubFS) (*SpxResourceSet, error) {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return nil, fmt.Errorf("failed to read sounds directory: %w", err)
 	}
+	sounds := make(map[string]*SpxSoundResource, len(soundEntries))
 	for _, entry := range soundEntries {
 		if !entry.IsDir() {
 			continue
@@ -141,7 +137,7 @@ func NewSpxResourceSet(rootFS vfs.SubFS) (*SpxResourceSet, error) {
 		}
 		sound.Name = soundName
 		sound.ID = SpxSoundResourceID{SoundName: soundName}
-		set.sounds[soundName] = &sound
+		sounds[soundName] = &sound
 	}
 
 	// Read sprites directory.
@@ -149,6 +145,7 @@ func NewSpxResourceSet(rootFS vfs.SubFS) (*SpxResourceSet, error) {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return nil, fmt.Errorf("failed to read sprites directory: %w", err)
 	}
+	sprites := make(map[string]*SpxSpriteResource, len(spriteEntries))
 	for _, entry := range spriteEntries {
 		if !entry.IsDir() {
 			continue
@@ -198,10 +195,15 @@ func NewSpxResourceSet(rootFS vfs.SubFS) (*SpxResourceSet, error) {
 			}
 		}
 
-		set.sprites[spriteName] = &sprite
+		sprites[spriteName] = &sprite
 	}
 
-	return set, nil
+	return &SpxResourceSet{
+		backdrops: backdrops,
+		sounds:    sounds,
+		sprites:   sprites,
+		widgets:   widgets,
+	}, nil
 }
 
 // Backdrop returns the backdrop with the given name. It returns nil if not found.

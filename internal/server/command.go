@@ -12,7 +12,6 @@ import (
 
 	xgoast "github.com/goplus/xgo/ast"
 	xgotoken "github.com/goplus/xgo/token"
-	"github.com/goplus/xgolsw/internal/vfs"
 	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
@@ -429,7 +428,7 @@ func collectPredefinedNames(result *compileResult, expr xgoast.Expr, declaredTyp
 		name := obj.Name()
 		switch obj.(type) {
 		case *types.Var, *types.Const:
-			if declaredType != nil && !types.AssignableTo(obj.Type(), declaredType) {
+			if typ := obj.Type(); typ != nil && declaredType != nil && !types.AssignableTo(typ, declaredType) {
 				return
 			}
 
@@ -913,7 +912,7 @@ func inferSpxSpriteResourceEnclosingNode(result *compileResult, node xgoast.Node
 
 			if named == GetSpxSpriteType() {
 				spxSpriteName = ident.Name
-			} else if vfs.HasSpriteType(result.proj, named) {
+			} else if result.hasSpxSpriteType(named) {
 				spxSpriteName = obj.Name()
 			}
 		} else if spxFile != "main.spx" {

@@ -71,7 +71,7 @@ type semanticTokenInfo struct {
 }
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens
-func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (tokens *SemanticTokens, err error) {
+func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (*SemanticTokens, error) {
 	result, _, astFile, err := s.compileAndGetASTFileForDocumentURI(params.TextDocument.URI)
 	if err != nil {
 		return nil, err
@@ -79,17 +79,6 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 	if astFile == nil {
 		return nil, nil
 	}
-
-	if tokensIface, ok := result.computedCache.semanticTokens.Load(params.TextDocument.URI); ok {
-		return &SemanticTokens{
-			Data: tokensIface.([]uint32),
-		}, nil
-	}
-	defer func() {
-		if err == nil {
-			result.computedCache.semanticTokens.Store(params.TextDocument.URI, slices.Clip(tokens.Data))
-		}
-	}()
 
 	var fset = result.proj.Fset
 	var typeInfo = getTypeInfo(result.proj)
