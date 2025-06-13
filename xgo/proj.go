@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gop
+package xgo
 
 import (
 	"errors"
@@ -24,8 +24,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goplus/gop/x/typesutil"
-	"github.com/goplus/mod/gopmod"
+	"github.com/goplus/mod/xgomod"
+	"github.com/goplus/xgo/x/typesutil"
 )
 
 var (
@@ -85,7 +85,7 @@ type Project struct {
 	Fset *token.FileSet
 
 	// The caller is responsible for initialization (required).
-	Mod *gopmod.Module
+	Mod *xgomod.Module
 
 	// The caller is responsible for initialization (optional).
 	Path string

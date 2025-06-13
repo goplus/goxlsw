@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/types"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo"
 )
 
 // InnermostScopeAt returns the innermost scope that contains the given
 // position. It returns nil if not found.
-func InnermostScopeAt(proj *gop.Project, pos token.Pos) *types.Scope {
+func InnermostScopeAt(proj *xgo.Project, pos token.Pos) *types.Scope {
 	if !pos.IsValid() {
 		return nil
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/types"
 	"slices"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
 )
 
 // CreateCallExprFromBranchStmt attempts to create a call expression from a
@@ -89,7 +89,7 @@ func FuncFromCallExpr(typeInfo *typesutil.Info, expr *ast.CallExpr) *types.Func 
 
 // WalkCallExprArgs walks the arguments of a call expression and calls the
 // provided walkFn for each argument. It does nothing if the function is not
-// found or if the function is Go+ FuncEx type. The walk stops if walkFn
+// found or if the function is XGo FuncEx type. The walk stops if walkFn
 // returns false.
 func WalkCallExprArgs(typeInfo *typesutil.Info, expr *ast.CallExpr, walkFn func(fun *types.Func, params *types.Tuple, paramIndex int, arg ast.Expr, argIndex int) bool) {
 	fun := FuncFromCallExpr(typeInfo, expr)
@@ -102,11 +102,11 @@ func WalkCallExprArgs(typeInfo *typesutil.Info, expr *ast.CallExpr, walkFn func(
 	}
 
 	params := sig.Params()
-	if IsMarkedAsGopPackage(fun.Pkg()) {
-		_, methodName, ok := SplitGoptMethodName(fun.Name(), false)
+	if IsMarkedAsXGoPackage(fun.Pkg()) {
+		_, methodName, ok := SplitXGotMethodName(fun.Name(), false)
 		if ok {
 			var vars []*types.Var
-			if _, ok := SplitGopxFuncName(methodName); ok {
+			if _, ok := SplitXGoxFuncName(methodName); ok {
 				typeParams := fun.Signature().TypeParams()
 				if typeParams != nil {
 					vars = slices.Grow(vars, typeParams.Len())

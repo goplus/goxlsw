@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/types"
@@ -25,50 +25,50 @@ import (
 )
 
 const (
-	GoptPrefix = "Gopt_" // Go+ template method.
-	GopoPrefix = "Gopo_" // Go+ overload function/method.
-	GopxPrefix = "Gopx_" // Go+ type as parameters function/method.
+	XGotPrefix = "Gopt_" // XGo template method.
+	XGooPrefix = "Gopo_" // XGo overload function/method.
+	XGoxPrefix = "Gopx_" // XGo type as parameters function/method.
 )
 
-// IsGoptMethodName reports whether the given name is a Go+ template method name.
-func IsGoptMethodName(name string) bool {
-	_, _, ok := SplitGoptMethodName(name, false)
+// IsXGotMethodName reports whether the given name is an XGo template method name.
+func IsXGotMethodName(name string) bool {
+	_, _, ok := SplitXGotMethodName(name, false)
 	return ok
 }
 
-// SplitGoptMethodName splits a Go+ template method name into receiver type
+// SplitXGotMethodName splits an XGo template method name into receiver type
 // name and method name.
-func SplitGoptMethodName(name string, trimGopx bool) (recvTypeName string, methodName string, ok bool) {
-	if !strings.HasPrefix(name, GoptPrefix) {
+func SplitXGotMethodName(name string, trimXGox bool) (recvTypeName string, methodName string, ok bool) {
+	if !strings.HasPrefix(name, XGotPrefix) {
 		return "", "", false
 	}
-	recvTypeName, methodName, ok = strings.Cut(name[len(GoptPrefix):], "_")
+	recvTypeName, methodName, ok = strings.Cut(name[len(XGotPrefix):], "_")
 	if !ok {
 		return "", "", false
 	}
-	if trimGopx {
-		if funcName, ok := SplitGopxFuncName(methodName); ok {
+	if trimXGox {
+		if funcName, ok := SplitXGoxFuncName(methodName); ok {
 			methodName = funcName
 		}
 	}
 	return
 }
 
-// SplitGopxFuncName splits a Go+ type as parameters function name into the
+// SplitXGoxFuncName splits an XGo type as parameters function name into the
 // function name.
-func SplitGopxFuncName(name string) (funcName string, ok bool) {
-	if !strings.HasPrefix(name, GopxPrefix) {
+func SplitXGoxFuncName(name string) (funcName string, ok bool) {
+	if !strings.HasPrefix(name, XGoxPrefix) {
 		return "", false
 	}
-	funcName = strings.TrimPrefix(name, GopxPrefix)
+	funcName = strings.TrimPrefix(name, XGoxPrefix)
 	ok = true
 	return
 }
 
-// ParseGopFuncName parses the Go+ overloaded function name.
-func ParseGopFuncName(name string) (parsedName string, overloadID *string) {
+// ParseXGoFuncName parses the XGo overloaded function name.
+func ParseXGoFuncName(name string) (parsedName string, overloadID *string) {
 	parsedName = name
-	if matches := gopOverloadFuncNameRE.FindStringSubmatch(parsedName); len(matches) == 3 {
+	if matches := xgoOverloadFuncNameRE.FindStringSubmatch(parsedName); len(matches) == 3 {
 		parsedName = matches[1]
 		overloadID = &matches[2]
 	}
@@ -76,30 +76,30 @@ func ParseGopFuncName(name string) (parsedName string, overloadID *string) {
 	return
 }
 
-// gopOverloadFuncNameRE is the regular expression of the Go+ overloaded
+// xgoOverloadFuncNameRE is the regular expression of the XGo overloaded
 // function name.
-var gopOverloadFuncNameRE = regexp.MustCompile(`^(.+)__([0-9a-z])$`)
+var xgoOverloadFuncNameRE = regexp.MustCompile(`^(.+)__([0-9a-z])$`)
 
-// IsGopOverloadedFuncName reports whether the given function name is a Go+
+// IsXGoOverloadedFuncName reports whether the given function name is an XGo
 // overloaded function name.
-func IsGopOverloadedFuncName(name string) bool {
-	return gopOverloadFuncNameRE.MatchString(name)
+func IsXGoOverloadedFuncName(name string) bool {
+	return xgoOverloadFuncNameRE.MatchString(name)
 }
 
-// IsGopOverloadableFunc reports whether the given function is a Go+ overloadable
+// IsXGoOverloadableFunc reports whether the given function is an XGo overloadable
 // function with a signature like `func(__gop_overload_args__ interface{_()})`.
-func IsGopOverloadableFunc(fun *types.Func) bool {
+func IsXGoOverloadableFunc(fun *types.Func) bool {
 	typ, _ := gogen.CheckSigFuncExObjects(fun.Type().(*types.Signature))
 	return typ != nil
 }
 
-// IsUnexpandableGopOverloadableFunc reports whether the given function is a
-// Unexpandable-Gop-Overloadable-Func, which is a function that:
+// IsUnexpandableXGoOverloadableFunc reports whether the given function is a
+// Unexpandable-XGo-Overloadable-Func, which is a function that:
 //  1. is overloadable: has a signature like `func(__gop_overload_args__ interface{_()})`
 //  2. but not expandable: can not be expanded into overloads
 //
 // A typical example is method `GetWidget` on spx `Game`.
-func IsUnexpandableGopOverloadableFunc(fun *types.Func) bool {
+func IsUnexpandableXGoOverloadableFunc(fun *types.Func) bool {
 	sig := fun.Type().(*types.Signature)
 	if _, ok := gogen.CheckSigFuncEx(sig); ok { // is `func(__gop_overload_args__ interface{_()})`
 		if t, _ := gogen.CheckSigFuncExObjects(sig); t == nil { // not expandable
@@ -109,10 +109,10 @@ func IsUnexpandableGopOverloadableFunc(fun *types.Func) bool {
 	return false
 }
 
-// ExpandGopOverloadableFunc expands the given Go+ function with a signature
+// ExpandXGoOverloadableFunc expands the given XGo function with a signature
 // like `func(__gop_overload_args__ interface{_()})` to all its overloads. It
 // returns nil if the function is not qualified for overload expansion.
-func ExpandGopOverloadableFunc(fun *types.Func) []*types.Func {
+func ExpandXGoOverloadableFunc(fun *types.Func) []*types.Func {
 	typ, objs := gogen.CheckSigFuncExObjects(fun.Type().(*types.Signature))
 	if typ == nil {
 		return nil

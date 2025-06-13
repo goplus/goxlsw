@@ -7,16 +7,16 @@ import (
 	"slices"
 	"strings"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/gop/goputil"
-	"github.com/goplus/goxlsw/internal"
-	"github.com/goplus/goxlsw/internal/analysis"
-	"github.com/goplus/goxlsw/internal/vfs"
-	"github.com/goplus/goxlsw/jsonrpc2"
-	"github.com/goplus/mod/gopmod"
 	"github.com/goplus/mod/modload"
+	"github.com/goplus/mod/xgomod"
+	xgoast "github.com/goplus/xgo/ast"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/internal"
+	"github.com/goplus/xgolsw/internal/analysis"
+	"github.com/goplus/xgolsw/internal/vfs"
+	"github.com/goplus/xgolsw/jsonrpc2"
+	"github.com/goplus/xgolsw/xgo"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // MessageReplier is an interface for sending messages back to the client.
@@ -41,11 +41,11 @@ type Server struct {
 	fileMapGetter    FileMapGetter // TODO(wyvern): Remove this field.
 }
 
-func (s *Server) getProj() *gop.Project {
+func (s *Server) getProj() *xgo.Project {
 	return s.workspaceRootFS
 }
 
-func (s *Server) getProjWithFile() *gop.Project {
+func (s *Server) getProjWithFile() *xgo.Project {
 	proj := s.workspaceRootFS
 	proj.UpdateFiles(s.fileMapGetter())
 	return proj
@@ -53,7 +53,7 @@ func (s *Server) getProjWithFile() *gop.Project {
 
 // New creates a new Server instance.
 func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter) *Server {
-	mod := gopmod.New(modload.Default)
+	mod := xgomod.New(modload.Default)
 	if err := mod.ImportClasses(); err != nil {
 		panic(fmt.Errorf("failed to import classes: %w", err))
 	}
@@ -363,17 +363,17 @@ func (s *Server) toDocumentURI(path string) DocumentURI {
 }
 
 // posDocumentURI returns the [DocumentURI] for the given position in the project.
-func (s *Server) posDocumentURI(proj *gop.Project, pos goptoken.Pos) DocumentURI {
-	return s.toDocumentURI(goputil.PosFilename(proj, pos))
+func (s *Server) posDocumentURI(proj *xgo.Project, pos xgotoken.Pos) DocumentURI {
+	return s.toDocumentURI(xgoutil.PosFilename(proj, pos))
 }
 
 // nodeDocumentURI returns the [DocumentURI] for the given node in the project.
-func (s *Server) nodeDocumentURI(proj *gop.Project, node gopast.Node) DocumentURI {
+func (s *Server) nodeDocumentURI(proj *xgo.Project, node xgoast.Node) DocumentURI {
 	return s.posDocumentURI(proj, node.Pos())
 }
 
 // locationForPos returns the [Location] for the given position in the project.
-func (s *Server) locationForPos(proj *gop.Project, pos goptoken.Pos) Location {
+func (s *Server) locationForPos(proj *xgo.Project, pos xgotoken.Pos) Location {
 	return Location{
 		URI:   s.posDocumentURI(proj, pos),
 		Range: RangeForPos(proj, pos),
@@ -381,7 +381,7 @@ func (s *Server) locationForPos(proj *gop.Project, pos goptoken.Pos) Location {
 }
 
 // locationForNode returns the [Location] for the given node in the project.
-func (s *Server) locationForNode(proj *gop.Project, node gopast.Node) Location {
+func (s *Server) locationForNode(proj *xgo.Project, node xgoast.Node) Location {
 	return Location{
 		URI:   s.nodeDocumentURI(proj, node),
 		Range: RangeForNode(proj, node),

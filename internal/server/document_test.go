@@ -17,7 +17,7 @@ var (
 	MySound  Sound
 	MySprite Sprite
 )
-run "assets", {Title: "Bullet (by Go+)"}
+run "assets", {Title: "Bullet (by XGo)"}
 `),
 			"MySprite.spx": []byte(`
 onStart => {
@@ -46,14 +46,14 @@ onStart => {
 				Start: Position{Line: 1, Character: 6},
 				End:   Position{Line: 1, Character: 15},
 			},
-			Target: toURI("gop:main?Backdrop1"),
+			Target: toURI("xgo:main?Backdrop1"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 1, Character: 16},
 				End:   Position{Line: 1, Character: 28},
 			},
-			Target: toURI("gop:github.com/goplus/spx/v2?BackdropName"),
+			Target: toURI("xgo:github.com/goplus/spx/v2?BackdropName"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
@@ -70,14 +70,14 @@ onStart => {
 				Start: Position{Line: 2, Character: 6},
 				End:   Position{Line: 2, Character: 16},
 			},
-			Target: toURI("gop:main?Backdrop1a"),
+			Target: toURI("xgo:main?Backdrop1a"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 2, Character: 19},
 				End:   Position{Line: 2, Character: 28},
 			},
-			Target: toURI("gop:main?Backdrop1"),
+			Target: toURI("xgo:main?Backdrop1"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
@@ -104,14 +104,14 @@ onStart => {
 				Start: Position{Line: 4, Character: 1},
 				End:   Position{Line: 4, Character: 8},
 			},
-			Target: toURI("gop:main?Game.MySound"),
+			Target: toURI("xgo:main?Game.MySound"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 4, Character: 10},
 				End:   Position{Line: 4, Character: 15},
 			},
-			Target: toURI("gop:github.com/goplus/spx/v2?Sound"),
+			Target: toURI("xgo:github.com/goplus/spx/v2?Sound"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
@@ -128,28 +128,28 @@ onStart => {
 				Start: Position{Line: 5, Character: 1},
 				End:   Position{Line: 5, Character: 9},
 			},
-			Target: toURI("gop:main?Game.MySprite"),
+			Target: toURI("xgo:main?Game.MySprite"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 5, Character: 10},
 				End:   Position{Line: 5, Character: 16},
 			},
-			Target: toURI("gop:github.com/goplus/spx/v2?Sprite"),
+			Target: toURI("xgo:github.com/goplus/spx/v2?Sprite"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 7, Character: 0},
 				End:   Position{Line: 7, Character: 3},
 			},
-			Target: toURI("gop:github.com/goplus/spx/v2?Game.run"),
+			Target: toURI("xgo:github.com/goplus/spx/v2?Game.run"),
 		})
 		assert.Contains(t, linksForMainSpx, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 7, Character: 15},
 				End:   Position{Line: 7, Character: 20},
 			},
-			Target: toURI("gop:github.com/goplus/spx/v2?Game.Title"),
+			Target: toURI("xgo:github.com/goplus/spx/v2?Game.Title"),
 		})
 
 		linksForMySpriteSpx, err := s.textDocumentDocumentLink(&DocumentLinkParams{
@@ -251,14 +251,14 @@ onStart => {
 
 	t.Run("NonSpxFile", func(t *testing.T) {
 		m := map[string][]byte{
-			"main.gop": []byte(`echo "Hello, Go+!"`),
+			"main.xgo": []byte(`echo "Hello, XGo!"`),
 		}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
-			TextDocument: TextDocumentIdentifier{URI: "file:///main.gop"},
+			TextDocument: TextDocumentIdentifier{URI: "file:///main.xgo"},
 		})
-		assert.EqualError(t, err, `file "main.gop" does not have .spx extension`)
+		assert.EqualError(t, err, `file "main.xgo" does not have .spx extension`)
 		assert.Nil(t, links)
 	})
 
@@ -304,14 +304,14 @@ var (
 				Start: Position{Line: 3, Character: 1},
 				End:   Position{Line: 3, Character: 8},
 			},
-			Target: toURI("gop:main?Game.MySound"),
+			Target: toURI("xgo:main?Game.MySound"),
 		})
 		assert.Contains(t, links, DocumentLink{
 			Range: Range{
 				Start: Position{Line: 3, Character: 9},
 				End:   Position{Line: 3, Character: 14},
 			},
-			Target: toURI("gop:github.com/goplus/spx/v2?Sound"),
+			Target: toURI("xgo:github.com/goplus/spx/v2?Sound"),
 		})
 	})
 
@@ -358,7 +358,7 @@ var (
 				Start: Position{Line: 2, Character: 1},
 				End:   Position{Line: 2, Character: 9},
 			},
-			Target: toURI("gop:main?Game.MySprite"),
+			Target: toURI("xgo:main?Game.MySprite"),
 		})
 	})
 
@@ -405,7 +405,7 @@ var (
 				Start: Position{Line: 2, Character: 1},
 				End:   Position{Line: 2, Character: 9},
 			},
-			Target: toURI("gop:main?Game.MySprite"),
+			Target: toURI("xgo:main?Game.MySprite"),
 		})
 	})
 
@@ -451,7 +451,7 @@ var (
 				Start: Position{Line: 2, Character: 1},
 				End:   Position{Line: 2, Character: 8},
 			},
-			Target: toURI("gop:main?Game.MySound"),
+			Target: toURI("xgo:main?Game.MySound"),
 		})
 	})
 

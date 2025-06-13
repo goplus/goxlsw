@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/goplus/gogen"
-	gopscanner "github.com/goplus/gop/scanner"
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/jsonrpc2"
-	"github.com/goplus/goxlsw/protocol"
+	xgoscanner "github.com/goplus/xgo/scanner"
+	"github.com/goplus/xgolsw/jsonrpc2"
+	"github.com/goplus/xgolsw/protocol"
+	"github.com/goplus/xgolsw/xgo"
 	"github.com/qiniu/x/errors"
 )
 
@@ -203,7 +203,7 @@ func (s *Server) getDiagnostics(path string) ([]Diagnostic, error) {
 	astFile, err := proj.AST(path)
 	if err != nil {
 		var (
-			errorList gopscanner.ErrorList
+			errorList xgoscanner.ErrorList
 			codeError *gogen.CodeError
 		)
 		if errors.As(err, &errorList) {
@@ -282,7 +282,7 @@ func (s *Server) ModifyFiles(changes []FileChange) {
 	// Process all changes in a batch
 	for _, change := range changes {
 		// Create new file with updated content
-		file := &gop.FileImpl{
+		file := &xgo.FileImpl{
 			Content: change.Content,
 			Version: change.Version,
 		}

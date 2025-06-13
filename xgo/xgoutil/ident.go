@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/types"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
+	"github.com/goplus/xgolsw/xgo"
 )
 
 // IdentAtPosition returns the identifier at the given position in the given AST file.
-func IdentAtPosition(proj *gop.Project, astFile *ast.File, position token.Position) *ast.Ident {
+func IdentAtPosition(proj *xgo.Project, astFile *ast.File, position token.Position) *ast.Ident {
 	fset := proj.Fset
 	astFilePosition := fset.Position(astFile.Pos())
 	if astFilePosition.Filename != position.Filename {

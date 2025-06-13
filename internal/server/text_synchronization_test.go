@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/jsonrpc2"
-	"github.com/goplus/goxlsw/protocol"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/jsonrpc2"
+	"github.com/goplus/xgolsw/protocol"
+	"github.com/goplus/xgolsw/xgo"
 )
 
 // MockReplier implements a message replier for testing
@@ -25,8 +25,8 @@ func (m *MockReplier) ReplyMessage(msg jsonrpc2.Message) error {
 	return nil
 }
 
-func file(text string) gop.File {
-	return &gop.FileImpl{Content: []byte(text)}
+func file(text string) xgo.File {
+	return &xgo.FileImpl{Content: []byte(text)}
 }
 
 // strPtr returns a pointer to the given string
@@ -37,13 +37,13 @@ func strPtr(s string) *string {
 func TestModifyFiles(t *testing.T) {
 	tests := []struct {
 		name    string
-		initial map[string]gop.File
+		initial map[string]xgo.File
 		changes []FileChange
 		want    map[string]string // path -> expected content
 	}{
 		{
 			name:    "add new files",
-			initial: map[string]gop.File{},
+			initial: map[string]xgo.File{},
 			changes: []FileChange{
 				{
 					Path:    "new.go",
@@ -57,8 +57,8 @@ func TestModifyFiles(t *testing.T) {
 		},
 		{
 			name: "update existing file with newer version",
-			initial: map[string]gop.File{
-				"main.go": &gop.FileImpl{
+			initial: map[string]xgo.File{
+				"main.go": &xgo.FileImpl{
 					Content: []byte("old content"),
 					ModTime: time.UnixMilli(100),
 				},
@@ -76,8 +76,8 @@ func TestModifyFiles(t *testing.T) {
 		},
 		{
 			name: "ignore older version update",
-			initial: map[string]gop.File{
-				"main.go": &gop.FileImpl{
+			initial: map[string]xgo.File{
+				"main.go": &xgo.FileImpl{
 					Content: []byte("current content"),
 					Version: 200,
 				},
@@ -95,12 +95,12 @@ func TestModifyFiles(t *testing.T) {
 		},
 		{
 			name: "multiple file changes",
-			initial: map[string]gop.File{
-				"file1.go": &gop.FileImpl{
+			initial: map[string]xgo.File{
+				"file1.go": &xgo.FileImpl{
 					Content: []byte("content1"),
 					ModTime: time.UnixMilli(100),
 				},
-				"file2.go": &gop.FileImpl{
+				"file2.go": &xgo.FileImpl{
 					Content: []byte("content2"),
 					ModTime: time.UnixMilli(100),
 				},
@@ -128,7 +128,7 @@ func TestModifyFiles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create new project with initial files
-			proj := gop.NewProject(token.NewFileSet(), tt.initial, gop.FeatAll)
+			proj := xgo.NewProject(token.NewFileSet(), tt.initial, xgo.FeatAll)
 
 			// Create a TestServer that extends the real Server
 			server := &Server{
@@ -242,7 +242,7 @@ func TestDidOpen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment with real Project instead of MockProject
-			proj := gop.NewProject(token.NewFileSet(), make(map[string]gop.File), 0)
+			proj := xgo.NewProject(token.NewFileSet(), make(map[string]xgo.File), 0)
 			proj.PutFile(tt.expectedPath, file("mock content"))
 			mockReplier := &MockReplier{}
 
@@ -303,7 +303,7 @@ func TestDidChange(t *testing.T) {
 			params: &protocol.DidChangeTextDocumentParams{
 				TextDocument: protocol.VersionedTextDocumentIdentifier{
 					TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-						URI: "file://workspace/test.gop",
+						URI: "file://workspace/test.xgo",
 					},
 					Version: 2,
 				},
@@ -320,7 +320,7 @@ func TestDidChange(t *testing.T) {
 			params: &protocol.DidChangeTextDocumentParams{
 				TextDocument: protocol.VersionedTextDocumentIdentifier{
 					TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-						URI: "file://workspace/test.gop",
+						URI: "file://workspace/test.xgo",
 					},
 					Version: 2,
 				},
@@ -343,7 +343,7 @@ func TestDidChange(t *testing.T) {
 			params: &protocol.DidChangeTextDocumentParams{
 				TextDocument: protocol.VersionedTextDocumentIdentifier{
 					TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-						URI: "file://workspace/test.gop",
+						URI: "file://workspace/test.xgo",
 					},
 					Version: 3,
 				},
@@ -373,7 +373,7 @@ func TestDidChange(t *testing.T) {
 			params: &protocol.DidChangeTextDocumentParams{
 				TextDocument: protocol.VersionedTextDocumentIdentifier{
 					TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-						URI: "file://error/test.gop",
+						URI: "file://error/test.xgo",
 					},
 					Version: 2,
 				},
@@ -390,7 +390,7 @@ func TestDidChange(t *testing.T) {
 			params: &protocol.DidChangeTextDocumentParams{
 				TextDocument: protocol.VersionedTextDocumentIdentifier{
 					TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-						URI: "file://workspace/test.gop",
+						URI: "file://workspace/test.xgo",
 					},
 					Version: 2,
 				},
@@ -403,15 +403,15 @@ func TestDidChange(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment with initial file content
-			files := make(map[string]gop.File)
-			path := "test.gop"
+			files := make(map[string]xgo.File)
+			path := "test.xgo"
 
-			files[path] = &gop.FileImpl{
+			files[path] = &xgo.FileImpl{
 				Content: []byte(tt.initialContent),
 				ModTime: time.Time{},
 			}
 
-			proj := gop.NewProject(token.NewFileSet(), files, gop.FeatAll)
+			proj := xgo.NewProject(token.NewFileSet(), files, xgo.FeatAll)
 			mockReplier := &MockReplier{}
 
 			// Create a TestServer that extends the real Server
@@ -466,7 +466,7 @@ func TestDidSave(t *testing.T) {
 			initialContent: "package main",
 			params: &protocol.DidSaveTextDocumentParams{
 				TextDocument: protocol.TextDocumentIdentifier{
-					URI: "file://workspace/test.gop",
+					URI: "file://workspace/test.xgo",
 				},
 				Text: strPtr("package main\n\nfunc main() {}"),
 			},
@@ -479,7 +479,7 @@ func TestDidSave(t *testing.T) {
 			initialContent: "package main",
 			params: &protocol.DidSaveTextDocumentParams{
 				TextDocument: protocol.TextDocumentIdentifier{
-					URI: "file://workspace/test.gop",
+					URI: "file://workspace/test.xgo",
 				},
 				Text: nil,
 			},
@@ -492,7 +492,7 @@ func TestDidSave(t *testing.T) {
 			initialContent: "package main",
 			params: &protocol.DidSaveTextDocumentParams{
 				TextDocument: protocol.TextDocumentIdentifier{
-					URI: "file://error/test.gop",
+					URI: "file://error/test.xgo",
 				},
 				Text: strPtr("package main\n\nfunc main() {}"),
 			},
@@ -504,16 +504,16 @@ func TestDidSave(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment
-			fset := goptoken.NewFileSet()
-			files := make(map[string]gop.File)
-			path := "test.gop"
+			fset := xgotoken.NewFileSet()
+			files := make(map[string]xgo.File)
+			path := "test.xgo"
 
-			files[path] = &gop.FileImpl{
+			files[path] = &xgo.FileImpl{
 				Content: []byte(tt.initialContent),
 				ModTime: time.Time{},
 			}
 
-			proj := gop.NewProject(fset, files, gop.FeatAST)
+			proj := xgo.NewProject(fset, files, xgo.FeatAST)
 			mockReplier := &MockReplier{}
 
 			// Create a TestServer
@@ -559,7 +559,7 @@ func TestDidClose(t *testing.T) {
 			name: "close document",
 			params: &protocol.DidCloseTextDocumentParams{
 				TextDocument: protocol.TextDocumentIdentifier{
-					URI: "file://workspace/test.gop",
+					URI: "file://workspace/test.xgo",
 				},
 			},
 			wantErr: false,
@@ -569,16 +569,16 @@ func TestDidClose(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment
-			fset := goptoken.NewFileSet()
-			files := make(map[string]gop.File)
-			path := "/test.gop"
+			fset := xgotoken.NewFileSet()
+			files := make(map[string]xgo.File)
+			path := "/test.xgo"
 
-			files[path] = &gop.FileImpl{
+			files[path] = &xgo.FileImpl{
 				Content: []byte("package main"),
 				ModTime: time.Time{},
 			}
 
-			proj := gop.NewProject(fset, files, gop.FeatAST)
+			proj := xgo.NewProject(fset, files, xgo.FeatAST)
 			mockReplier := &MockReplier{}
 
 			// Create a TestServer
@@ -699,17 +699,17 @@ func TestChangedText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment
-			fset := goptoken.NewFileSet()
-			files := make(map[string]gop.File)
-			path := "/test.gop"
+			fset := xgotoken.NewFileSet()
+			files := make(map[string]xgo.File)
+			path := "/test.xgo"
 
 			// Create initial file
-			files[path] = &gop.FileImpl{
+			files[path] = &xgo.FileImpl{
 				Content: []byte(tt.initialContent),
 				ModTime: time.Now(),
 			}
 
-			proj := gop.NewProject(fset, files, gop.FeatAST)
+			proj := xgo.NewProject(fset, files, xgo.FeatAST)
 
 			// For AST parsing to work, we need a real file with content
 			// parsed into the AST before we can apply changes
@@ -841,18 +841,18 @@ func TestApplyIncrementalChanges(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment
-			fset := goptoken.NewFileSet()
-			files := make(map[string]gop.File)
-			path := "/test.gop"
+			fset := xgotoken.NewFileSet()
+			files := make(map[string]xgo.File)
+			path := "/test.xgo"
 
 			if tt.initialContent != "" {
-				files[path] = &gop.FileImpl{
+				files[path] = &xgo.FileImpl{
 					Content: []byte(tt.initialContent),
 					ModTime: time.Now(),
 				}
 			}
 
-			proj := gop.NewProject(fset, files, gop.FeatAST)
+			proj := xgo.NewProject(fset, files, xgo.FeatAST)
 
 			// For tests with content, ensure we have AST
 			if tt.initialContent != "" {
@@ -897,7 +897,7 @@ func TestGetDiagnostics(t *testing.T) {
 		{
 			name:           "import errors",
 			content:        "package main\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}",
-			path:           "/test.gop",
+			path:           "/test.xgo",
 			wantDiagCount:  1,
 			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
 			wantErr:        false,
@@ -905,7 +905,7 @@ func TestGetDiagnostics(t *testing.T) {
 		{
 			name:           "syntax error",
 			content:        "package main\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\"\n}", // Missing closing parenthesis
-			path:           "/syntax_error.gop",
+			path:           "/syntax_error.xgo",
 			wantDiagCount:  8,
 			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
 			wantErr:        false,
@@ -913,7 +913,7 @@ func TestGetDiagnostics(t *testing.T) {
 		{
 			name:           "type error",
 			content:        "package main\n\nfunc main() {\n\tvar x int = \"string\"\n}", // Type mismatch
-			path:           "/type_error.gop",
+			path:           "/type_error.xgo",
 			wantDiagCount:  1,
 			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
 			wantErr:        false,
@@ -921,7 +921,7 @@ func TestGetDiagnostics(t *testing.T) {
 		{
 			name:           "no error",
 			content:        "package main\n\nfunc main() {\n\t}",
-			path:           "/code_error.gop",
+			path:           "/code_error.xgo",
 			wantDiagCount:  0,
 			wantSeverities: []protocol.DiagnosticSeverity{},
 			wantErr:        false,
@@ -929,7 +929,7 @@ func TestGetDiagnostics(t *testing.T) {
 		{
 			name:           "multiple type errors",
 			content:        "package main\n\nfunc main() {\n\tvar x int = \"string\"\n\tvar y bool = 42\n}",
-			path:           "/multiple_errors.gop",
+			path:           "/multiple_errors.xgo",
 			wantDiagCount:  2,
 			wantSeverities: []protocol.DiagnosticSeverity{SeverityError},
 			wantErr:        false,
@@ -939,18 +939,18 @@ func TestGetDiagnostics(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment
-			fset := goptoken.NewFileSet()
-			files := make(map[string]gop.File)
+			fset := xgotoken.NewFileSet()
+			files := make(map[string]xgo.File)
 
 			// Create the test file
-			files[tt.path] = &gop.FileImpl{
+			files[tt.path] = &xgo.FileImpl{
 				Content: []byte(tt.content),
 				ModTime: time.Now(),
 			}
 
 			// Create a mock Project that returns our predefined errors
 			server := &Server{
-				workspaceRootFS: gop.NewProject(fset, files, gop.FeatAll),
+				workspaceRootFS: xgo.NewProject(fset, files, xgo.FeatAll),
 			}
 
 			// Execute test

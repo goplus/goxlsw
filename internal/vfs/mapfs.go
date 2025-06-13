@@ -1,19 +1,18 @@
 package vfs
 
 import (
-	"go/types"
 	"io/fs"
 	"path"
 	"sort"
 	"strings"
 
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgolsw/xgo"
 	xfs "github.com/qiniu/x/http/fs"
 )
 
-type MapFile = gop.File
-type MapFileImpl = gop.FileImpl
-type MapFS = gop.Project
+type MapFile = xgo.File
+type MapFileImpl = xgo.FileImpl
+type MapFS = xgo.Project
 
 // RangeSpriteNames iterates sprite names.
 func RangeSpriteNames(rootFS *MapFS, f func(name string) bool) {
@@ -24,19 +23,6 @@ func RangeSpriteNames(rootFS *MapFS, f func(name string) bool) {
 		}
 		return true
 	})
-}
-
-// HasSpriteType checks if there is specified sprite type.
-func HasSpriteType(rootFS *MapFS, typ types.Type) (has bool) {
-	pkg, _, _, _ := rootFS.TypeInfo()
-	RangeSpriteNames(rootFS, func(name string) bool {
-		if obj := pkg.Scope().Lookup(name); obj != nil && obj.Type() == typ {
-			has = true
-			return false
-		}
-		return true
-	})
-	return
 }
 
 // ListSpxFiles returns a list of .spx files in the rootFS.
@@ -80,7 +66,7 @@ func (fs SubFS) ReadFile(name string) ([]byte, error) {
 func (fs SubFS) Readdir(name string) (ret []fs.FileInfo, err error) {
 	prefix := fs.base + "/" + name + "/"
 	entries := map[string]int{}
-	fs.root.RangeFileContents(func(path string, file gop.File) bool {
+	fs.root.RangeFileContents(func(path string, file xgo.File) bool {
 		if strings.HasPrefix(path, prefix) {
 			name := path[len(prefix):]
 			if i := strings.Index(name, "/"); i >= 0 {

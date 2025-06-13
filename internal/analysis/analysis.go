@@ -1,8 +1,8 @@
 package analysis
 
 import (
-	"github.com/goplus/goxlsw/internal/analysis/passes/appends"
-	"github.com/goplus/goxlsw/internal/analysis/protocol"
+	"github.com/goplus/xgolsw/internal/analysis/passes/appends"
+	"github.com/goplus/xgolsw/internal/analysis/protocol"
 )
 
 // Analyzer augments a [protocol.Analyzer] with additional LSP configuration.

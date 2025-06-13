@@ -5,15 +5,15 @@ import (
 	"go/types"
 	"sync"
 
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/internal/pkgdata"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/internal/pkgdata"
 	"golang.org/x/tools/go/gcexportdata"
 )
 
 // importer implements [types.Importer].
 type importer struct {
 	mu     sync.Mutex
-	fset   *goptoken.FileSet
+	fset   *xgotoken.FileSet
 	loaded map[string]*types.Package
 }
 
@@ -22,7 +22,7 @@ func newImporter() *importer {
 	loaded := make(map[string]*types.Package)
 	loaded["unsafe"] = types.Unsafe
 	return &importer{
-		fset:   goptoken.NewFileSet(),
+		fset:   xgotoken.NewFileSet(),
 		loaded: loaded,
 	}
 }

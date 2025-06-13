@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package gop
+package xgo
 
 import (
 	"testing"
 
-	"github.com/goplus/mod/gopmod"
+	"github.com/goplus/mod/xgomod"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetClassfileAutoImportedPackages(t *testing.T) {
 	t.Run("Spx", func(t *testing.T) {
-		originalImports := gopmod.SpxProject.Import
+		originalImports := xgomod.SpxProject.Import
 		t.Cleanup(func() {
-			gopmod.SpxProject.Import = originalImports
+			xgomod.SpxProject.Import = originalImports
 		})
 
 		pkgs := map[string]string{
@@ -37,10 +37,10 @@ func TestSetClassfileAutoImportedPackages(t *testing.T) {
 		}
 		SetClassfileAutoImportedPackages("spx", pkgs)
 
-		assert.Len(t, gopmod.SpxProject.Import, 3)
+		assert.Len(t, xgomod.SpxProject.Import, 3)
 
 		got := make(map[string]string)
-		for _, imp := range gopmod.SpxProject.Import {
+		for _, imp := range xgomod.SpxProject.Import {
 			got[imp.Name] = imp.Path
 		}
 		assert.Equal(t, pkgs, got)

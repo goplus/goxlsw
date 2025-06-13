@@ -3,7 +3,7 @@ package server
 import (
 	"go/types"
 
-	"github.com/goplus/goxlsw/gop/goputil"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_implementation
@@ -17,9 +17,9 @@ func (s *Server) textDocumentImplementation(params *ImplementationParams) (any, 
 	}
 	position := ToPosition(result.proj, astFile, params.Position)
 
-	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(result.proj, astFile, position)
 	obj := getTypeInfo(result.proj).ObjectOf(ident)
-	if !goputil.IsInMainPkg(obj) {
+	if !xgoutil.IsInMainPkg(obj) {
 		return nil, nil
 	}
 

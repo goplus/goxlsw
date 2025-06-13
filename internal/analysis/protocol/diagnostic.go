@@ -1,6 +1,6 @@
 package protocol
 
-import "github.com/goplus/gop/token"
+import "github.com/goplus/xgo/token"
 
 // A Diagnostic is a message associated with a source location or range.
 //

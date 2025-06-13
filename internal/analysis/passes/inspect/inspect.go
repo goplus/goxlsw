@@ -5,8 +5,8 @@
 // Example of use in another analysis:
 //
 //	import (
-//		"github.com/goplus/goxlsw/internal/protocol"
-//		"github.com/goplus/goxlsw/internal/analysis/passes/inspect"
+//		"github.com/goplus/xgolsw/internal/protocol"
+//		"github.com/goplus/xgolsw/internal/analysis/passes/inspect"
 //		"golang.org/x/tools/go/ast/inspector"
 //	)
 //
@@ -27,8 +27,8 @@ package inspect
 import (
 	"reflect"
 
-	"github.com/goplus/goxlsw/internal/analysis/ast/inspector"
-	"github.com/goplus/goxlsw/internal/analysis/protocol"
+	"github.com/goplus/xgolsw/internal/analysis/ast/inspector"
+	"github.com/goplus/xgolsw/internal/analysis/protocol"
 )
 
 var Analyzer = &protocol.Analyzer{

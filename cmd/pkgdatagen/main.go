@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/goplus/goxlsw/pkgdoc"
+	"github.com/goplus/xgolsw/pkgdoc"
 	"golang.org/x/mod/module"
 	"golang.org/x/tools/go/gcexportdata"
 
@@ -141,12 +141,12 @@ var stdPkgPaths = []string{
 	"unicode/utf16",
 	"unicode/utf8",
 
-	// See github.com/goplus/gop/cl.newBuiltinDefault for the list of packages required by Go+ builtins.
-	"github.com/qiniu/x/gop",
-	"github.com/qiniu/x/gop/ng",
-	"github.com/qiniu/x/gop/osx",
-	"github.com/qiniu/x/stringslice",
+	// See github.com/goplus/xgo/cl.newBuiltinDefault for the list of packages required by XGo builtins.
+	"github.com/qiniu/x/osx",
+	"github.com/qiniu/x/xgo",
+	"github.com/qiniu/x/xgo/ng",
 	"github.com/qiniu/x/stringutil",
+	"github.com/qiniu/x/stringslice",
 
 	"github.com/goplus/spx/v2",
 	"github.com/goplus/spx/v2/pkg/gdspx/pkg/engine",

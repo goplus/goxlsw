@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"net/url"
 
-	"github.com/goplus/goxlsw/protocol"
+	"github.com/goplus/xgolsw/protocol"
 )
 
 type (
@@ -223,7 +223,7 @@ type SpxDefinitionIdentifier struct {
 
 // String implements [fmt.Stringer].
 func (id SpxDefinitionIdentifier) String() string {
-	s := "gop:"
+	s := "xgo:"
 	if id.Package != nil {
 		s += *id.Package
 	}

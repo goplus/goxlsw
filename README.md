@@ -1,24 +1,24 @@
-goxlsw
+xgolsw
 ========
 
-[![Build Status](https://github.com/goplus/goxlsw/actions/workflows/go.yml/badge.svg)](https://github.com/goplus/goxlsw/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/goplus/goxlsw)](https://goreportcard.com/report/github.com/goplus/goxlsw)
-[![GitHub release](https://img.shields.io/github/v/tag/goplus/goxlsw.svg?label=release)](https://github.com/goplus/goxlsw/releases)
-[![Coverage Status](https://codecov.io/gh/goplus/goxlsw/branch/main/graph/badge.svg)](https://codecov.io/gh/goplus/goxlsw)
-[![GoDoc](https://pkg.go.dev/badge/github.com/goplus/goxlsw.svg)](https://pkg.go.dev/github.com/goplus/goxlsw)
+[![Build Status](https://github.com/goplus/xgolsw/actions/workflows/go.yml/badge.svg)](https://github.com/goplus/xgolsw/actions/workflows/go.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/goplus/xgolsw)](https://goreportcard.com/report/github.com/goplus/xgolsw)
+[![GitHub release](https://img.shields.io/github/v/tag/goplus/xgolsw.svg?label=release)](https://github.com/goplus/xgolsw/releases)
+[![Coverage Status](https://codecov.io/gh/goplus/xgolsw/branch/main/graph/badge.svg)](https://codecov.io/gh/goplus/xgolsw)
+[![GoDoc](https://pkg.go.dev/badge/github.com/goplus/xgolsw.svg)](https://pkg.go.dev/github.com/goplus/xgolsw)
 
-A lightweight Go+ language server that runs in the browser using WebAssembly.
+A lightweight XGo language server that runs in the browser using WebAssembly.
 
 This project follows the [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/)
 using [JSON-RPC 2.0](https://www.jsonrpc.org/specification) for message exchange. However, unlike traditional LSP
 implementations that require a network transport layer, this project operates directly in the browser's memory space
 through its API interfaces.
 
-## Difference between `goxls` and `goxlsw`
+## Difference between `goxls` and `xgolsw`
 
-* `goxls` runs locally, while `goxlsw` runs in the browser using WebAssembly.
-* `goxls` supports a workspace (multiple projects), while `goxlsw` supports a single project.
-* `goxls` supports mixed programming of Go and Go+, while `goxlsw` only supports a pure Go+ project.
+* `goxls` runs locally, while `xgolsw` runs in the browser using WebAssembly.
+* `goxls` supports a workspace (multiple projects), while `xgolsw` supports a single project.
+* `goxls` supports mixed programming of Go and XGo, while `xgolsw` only supports a pure XGo project.
 
 ## Building from source
 
