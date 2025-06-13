@@ -13,10 +13,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/goplus/goxlsw/pkgdoc"
+	"github.com/goplus/xgolsw/pkgdoc"
 )
 
-//go:generate go tool github.com/goplus/goxlsw/cmd/pkgdatagen
+//go:generate go tool pkgdatagen
 
 var (
 	//go:embed pkgdata.zip

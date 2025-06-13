@@ -553,7 +553,7 @@ onClick => {
 		assert.True(t, containsCompletionItemLabel(items2, "setCostume"))
 	})
 
-	t.Run("WithGopBuiltins", func(t *testing.T) {
+	t.Run("WithXGoBuiltins", func(t *testing.T) {
 		m := map[string][]byte{
 			"main.spx": []byte(`
 onClick => {
@@ -691,7 +691,7 @@ onStart => {
 		assert.NotEmpty(t, items)
 		assert.True(t, slices.ContainsFunc(items, func(item CompletionItem) bool {
 			itemData, ok := item.Data.(*CompletionItemData)
-			if ok && itemData.Definition.String() == "gop:main?Point.X" {
+			if ok && itemData.Definition.String() == "xgo:main?Point.X" {
 				assert.Equal(t, "X: ${1:}", item.InsertText)
 				assert.Equal(t, ToPtr(SnippetTextFormat), item.InsertTextFormat)
 				return true
@@ -700,7 +700,7 @@ onStart => {
 		}))
 		assert.True(t, slices.ContainsFunc(items, func(item CompletionItem) bool {
 			itemData, ok := item.Data.(*CompletionItemData)
-			if ok && itemData.Definition.String() == "gop:main?Point.Y" {
+			if ok && itemData.Definition.String() == "xgo:main?Point.Y" {
 				assert.Equal(t, "Y: ${1:}", item.InsertText)
 				assert.Equal(t, ToPtr(SnippetTextFormat), item.InsertTextFormat)
 				return true
@@ -732,7 +732,7 @@ onStart => {
 		assert.NotEmpty(t, items)
 		assert.True(t, slices.ContainsFunc(items, func(item CompletionItem) bool {
 			itemData, ok := item.Data.(*CompletionItemData)
-			if ok && itemData.Definition.String() == "gop:image/color?RGBA.R" {
+			if ok && itemData.Definition.String() == "xgo:image/color?RGBA.R" {
 				assert.Equal(t, "R: ${1:}", item.InsertText)
 				assert.Equal(t, ToPtr(SnippetTextFormat), item.InsertTextFormat)
 				return true

@@ -9,14 +9,14 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/internal/pkgdata"
-	"github.com/goplus/goxlsw/internal/server"
-	"github.com/goplus/goxlsw/internal/vfs"
-	"github.com/goplus/goxlsw/jsonrpc2"
+	"github.com/goplus/xgolsw/internal/pkgdata"
+	"github.com/goplus/xgolsw/internal/server"
+	"github.com/goplus/xgolsw/internal/vfs"
+	"github.com/goplus/xgolsw/jsonrpc2"
+	"github.com/goplus/xgolsw/xgo"
 )
 
-// Spxls implements a lightweight Go+ language server for spx that runs in the
+// Spxls implements a lightweight XGo language server for spx that runs in the
 // browser using WebAssembly.
 type Spxls struct {
 	messageReplier js.Value
@@ -43,7 +43,7 @@ func NewSpxls(this js.Value, args []js.Value) any {
 		files := filesProvider.Invoke()
 		return ConvertJSFilesToMap(files)
 	}
-	s.server = server.New(gop.NewProject(nil, filesMapGetter, gop.FeatAll), s, filesMapGetter)
+	s.server = server.New(xgo.NewProject(nil, filesMapGetter, xgo.FeatAll), s, filesMapGetter)
 	return js.ValueOf(map[string]any{
 		"handleMessage": JSFuncOfWithError(s.HandleMessage),
 	})
@@ -131,7 +131,7 @@ func SetClassfileAutoImportedPackages(this js.Value, args []js.Value) any {
 		pkgs[key] = value.String()
 	}
 
-	gop.SetClassfileAutoImportedPackages(id, pkgs)
+	xgo.SetClassfileAutoImportedPackages(id, pkgs)
 	return nil
 }
 

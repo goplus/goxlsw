@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/goplus/goxlsw/gop/goputil"
-	"github.com/goplus/goxlsw/internal"
-	"github.com/goplus/goxlsw/internal/pkgdata"
-	"github.com/goplus/goxlsw/pkgdoc"
+	"github.com/goplus/xgolsw/internal"
+	"github.com/goplus/xgolsw/internal/pkgdata"
+	"github.com/goplus/xgolsw/pkgdoc"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // SpxDefinition represents an spx definition.
@@ -194,27 +194,27 @@ var (
 		"recover": "func recover() interface{}",
 	}
 
-	// gopBuiltinAliases contains aliases for Go+ builtins.
+	// xgoBuiltinAliases contains aliases for XGo builtins.
 	//
-	// See github.com/goplus/gop/cl.initBuiltin for the list of Go+ builtin aliases.
-	gopBuiltinAliases = map[string]string{
+	// See github.com/goplus/xgo/cl.initBuiltin for the list of XGo builtin aliases.
+	xgoBuiltinAliases = map[string]string{
 		// Types.
-		"bigfloat": "github.com/qiniu/x/gop/ng#Bigfloat",
-		"bigint":   "github.com/qiniu/x/gop/ng#Bigint",
-		"bigrat":   "github.com/qiniu/x/gop/ng#Bigrat",
-		"int128":   "github.com/qiniu/x/gop/ng#Int128",
-		"uint128":  "github.com/qiniu/x/gop/ng#Uint128",
+		"bigfloat": "github.com/qiniu/x/xgo/ng#Bigfloat",
+		"bigint":   "github.com/qiniu/x/xgo/ng#Bigint",
+		"bigrat":   "github.com/qiniu/x/xgo/ng#Bigrat",
+		"int128":   "github.com/qiniu/x/xgo/ng#Int128",
+		"uint128":  "github.com/qiniu/x/xgo/ng#Uint128",
 
 		// Functions.
-		"blines":   "github.com/qiniu/x/gop/osx#BLines",
+		"blines":   "github.com/qiniu/x/osx#BLines",
 		"create":   "os#Create",
 		"echo":     "fmt#Println",
 		"errorf":   "fmt#Errorf",
 		"fprint":   "fmt#Fprint",
 		"fprintf":  "fmt#Fprintf",
 		"fprintln": "fmt#Fprintln",
-		"lines":    "github.com/qiniu/x/gop/osx#Lines",
-		"newRange": "github.com/qiniu/x/gop#NewRange__0",
+		"lines":    "github.com/qiniu/x/osx#Lines",
+		"newRange": "github.com/qiniu/x/xgo#NewRange__0",
 		"open":     "os#Open",
 		"print":    "fmt#Print",
 		"printf":   "fmt#Printf",
@@ -231,7 +231,7 @@ func GetSpxDefinitionForBuiltinObj(obj types.Object) SpxDefinition {
 	const pkgPath = "builtin"
 
 	idName := obj.Name()
-	if def, err := getSpxDefinitionForGopBuiltinAlias(idName); err == nil {
+	if def, err := getSpxDefinitionForXGoBuiltinAlias(idName); err == nil {
 		return def
 	}
 
@@ -298,44 +298,44 @@ func GetSpxDefinitionForBuiltinObj(obj types.Object) SpxDefinition {
 // GetBuiltinSpxDefinitions returns the builtin spx definitions.
 var GetBuiltinSpxDefinitions = sync.OnceValue(func() []SpxDefinition {
 	names := types.Universe.Names()
-	defs := make([]SpxDefinition, 0, len(names)+len(gopBuiltinAliases))
+	defs := make([]SpxDefinition, 0, len(names)+len(xgoBuiltinAliases))
 	for _, name := range names {
-		if _, ok := gopBuiltinAliases[name]; ok {
+		if _, ok := xgoBuiltinAliases[name]; ok {
 			continue
 		}
 		if obj := types.Universe.Lookup(name); obj != nil && obj.Pkg() == nil {
 			defs = append(defs, GetSpxDefinitionForBuiltinObj(obj))
 		}
 	}
-	for alias := range gopBuiltinAliases {
-		def, err := getSpxDefinitionForGopBuiltinAlias(alias)
+	for alias := range xgoBuiltinAliases {
+		def, err := getSpxDefinitionForXGoBuiltinAlias(alias)
 		if err != nil {
-			panic(fmt.Errorf("failed to get spx definition for gop builtin alias %q: %w", alias, err))
+			panic(fmt.Errorf("failed to get spx definition for xgo builtin alias %q: %w", alias, err))
 		}
 		defs = append(defs, def)
 	}
 	return slices.Clip(defs)
 })
 
-// getSpxDefinitionForGopBuiltinAlias returns the spx definition for the
-// given Go+ builtin alias.
-func getSpxDefinitionForGopBuiltinAlias(alias string) (SpxDefinition, error) {
-	ref, ok := gopBuiltinAliases[alias]
+// getSpxDefinitionForXGoBuiltinAlias returns the spx definition for the
+// given XGo builtin alias.
+func getSpxDefinitionForXGoBuiltinAlias(alias string) (SpxDefinition, error) {
+	ref, ok := xgoBuiltinAliases[alias]
 	if !ok {
-		return SpxDefinition{}, fmt.Errorf("unknown gop builtin alias: %s", alias)
+		return SpxDefinition{}, fmt.Errorf("unknown xgo builtin alias: %s", alias)
 	}
 
 	pkgPath, name, ok := strings.Cut(ref, "#")
 	if !ok {
-		return SpxDefinition{}, fmt.Errorf("invalid gop builtin alias: %s", alias)
+		return SpxDefinition{}, fmt.Errorf("invalid xgo builtin alias: %s", alias)
 	}
 	pkg, err := internal.Importer.Import(pkgPath)
 	if err != nil {
-		return SpxDefinition{}, fmt.Errorf("failed to import package for gop builtin alias %q: %w", alias, err)
+		return SpxDefinition{}, fmt.Errorf("failed to import package for xgo builtin alias %q: %w", alias, err)
 	}
 	pkgDoc, err := pkgdata.GetPkgDoc(pkgPath)
 	if err != nil {
-		return SpxDefinition{}, fmt.Errorf("failed to get package doc for gop builtin alias %q: %w", alias, err)
+		return SpxDefinition{}, fmt.Errorf("failed to get package doc for xgo builtin alias %q: %w", alias, err)
 	}
 
 	obj := pkg.Scope().Lookup(name)
@@ -349,7 +349,7 @@ func getSpxDefinitionForGopBuiltinAlias(alias string) (SpxDefinition, error) {
 	case *types.Func:
 		def = GetSpxDefinitionForFunc(obj, "", pkgDoc)
 	default:
-		return SpxDefinition{}, fmt.Errorf("unexpected object type for gop builtin alias %q: %T", alias, obj)
+		return SpxDefinition{}, fmt.Errorf("unexpected object type for xgo builtin alias %q: %T", alias, obj)
 	}
 
 	return SpxDefinition{
@@ -381,7 +381,7 @@ var (
 	// GetMathPkgSpxDefinitions returns the spx definitions for the math package.
 	GetMathPkgSpxDefinitions = sync.OnceValue(func() []SpxDefinition {
 		mathPkg := GetMathPkg()
-		mathPkgPath := goputil.PkgPath(mathPkg)
+		mathPkgPath := xgoutil.PkgPath(mathPkg)
 		mathPkgDoc, err := pkgdata.GetPkgDoc(mathPkgPath)
 		if err != nil {
 			panic(fmt.Errorf("failed to get math package doc: %w", err))
@@ -503,7 +503,7 @@ var (
 	// GetSpxPkgDefinitions returns the spx definitions for the spx package.
 	GetSpxPkgDefinitions = sync.OnceValue(func() []SpxDefinition {
 		spxPkg := GetSpxPkg()
-		spxPkgPath := goputil.PkgPath(spxPkg)
+		spxPkgPath := xgoutil.PkgPath(spxPkg)
 		spxPkgDoc, err := pkgdata.GetPkgDoc(spxPkgPath)
 		if err != nil {
 			panic(fmt.Errorf("failed to get spx package doc: %w", err))
@@ -529,7 +529,7 @@ var nonMainPkgSpxDefsCache sync.Map // map[*types.Package][]SpxDefinition
 
 // GetSpxDefinitionsForPkg returns the spx definitions for the given package.
 func GetSpxDefinitionsForPkg(pkg *types.Package, pkgDoc *pkgdoc.PkgDoc) (defs []SpxDefinition) {
-	if !goputil.IsMainPkg(pkg) {
+	if !xgoutil.IsMainPkg(pkg) {
 		if defsIface, ok := nonMainPkgSpxDefsCache.Load(pkg); ok {
 			return defsIface.([]SpxDefinition)
 		}
@@ -550,7 +550,7 @@ func GetSpxDefinitionsForPkg(pkg *types.Package, pkgDoc *pkgdoc.PkgDoc) (defs []
 			case *types.TypeName:
 				defs = append(defs, GetSpxDefinitionForType(obj, pkgDoc))
 			case *types.Func:
-				if funcOverloads := goputil.ExpandGopOverloadableFunc(obj); funcOverloads != nil {
+				if funcOverloads := xgoutil.ExpandXGoOverloadableFunc(obj); funcOverloads != nil {
 					for _, funcOverload := range funcOverloads {
 						defs = append(defs, GetSpxDefinitionForFunc(funcOverload, "", pkgDoc))
 					}
@@ -578,7 +578,7 @@ type nonMainPkgSpxDefCacheForVarsKey struct {
 
 // GetSpxDefinitionForVar returns the spx definition for the provided variable.
 func GetSpxDefinitionForVar(v *types.Var, selectorTypeName string, forceVar bool, pkgDoc *pkgdoc.PkgDoc) (def SpxDefinition) {
-	if !goputil.IsInMainPkg(v) {
+	if !xgoutil.IsInMainPkg(v) {
 		cacheKey := nonMainPkgSpxDefCacheForVarsKey{
 			v:                v,
 			selectorTypeName: selectorTypeName,
@@ -630,7 +630,7 @@ func GetSpxDefinitionForVar(v *types.Var, selectorTypeName string, forceVar bool
 		TypeHint: v.Type(),
 
 		ID: SpxDefinitionIdentifier{
-			Package: ToPtr(goputil.PkgPath(v.Pkg())),
+			Package: ToPtr(xgoutil.PkgPath(v.Pkg())),
 			Name:    &idName,
 		},
 		Overview: overview.String(),
@@ -650,7 +650,7 @@ var nonMainPkgSpxDefCacheForConsts sync.Map // map[*types.Const]SpxDefinition
 
 // GetSpxDefinitionForConst returns the spx definition for the provided constant.
 func GetSpxDefinitionForConst(c *types.Const, pkgDoc *pkgdoc.PkgDoc) (def SpxDefinition) {
-	if !goputil.IsInMainPkg(c) {
+	if !xgoutil.IsInMainPkg(c) {
 		if defIface, ok := nonMainPkgSpxDefCacheForConsts.Load(c); ok {
 			return defIface.(SpxDefinition)
 		}
@@ -674,7 +674,7 @@ func GetSpxDefinitionForConst(c *types.Const, pkgDoc *pkgdoc.PkgDoc) (def SpxDef
 		TypeHint: c.Type(),
 
 		ID: SpxDefinitionIdentifier{
-			Package: ToPtr(goputil.PkgPath(c.Pkg())),
+			Package: ToPtr(xgoutil.PkgPath(c.Pkg())),
 			Name:    ToPtr(c.Name()),
 		},
 		Overview: overview.String(),
@@ -694,7 +694,7 @@ var nonMainPkgSpxDefCacheForTypes sync.Map // map[*types.TypeName]SpxDefinition
 
 // GetSpxDefinitionForType returns the spx definition for the provided type.
 func GetSpxDefinitionForType(typeName *types.TypeName, pkgDoc *pkgdoc.PkgDoc) (def SpxDefinition) {
-	if !goputil.IsInMainPkg(typeName) {
+	if !xgoutil.IsInMainPkg(typeName) {
 		if defIface, ok := nonMainPkgSpxDefCacheForTypes.Load(typeName); ok {
 			return defIface.(SpxDefinition)
 		}
@@ -729,7 +729,7 @@ func GetSpxDefinitionForType(typeName *types.TypeName, pkgDoc *pkgdoc.PkgDoc) (d
 		TypeHint: typeName.Type(),
 
 		ID: SpxDefinitionIdentifier{
-			Package: ToPtr(goputil.PkgPath(typeName.Pkg())),
+			Package: ToPtr(xgoutil.PkgPath(typeName.Pkg())),
 			Name:    ToPtr(typeName.Name()),
 		},
 		Overview: overview.String(),
@@ -756,7 +756,7 @@ type nonMainPkgSpxDefCacheForFuncsKey struct {
 
 // GetSpxDefinitionForFunc returns the spx definition for the provided function.
 func GetSpxDefinitionForFunc(fun *types.Func, recvTypeName string, pkgDoc *pkgdoc.PkgDoc) (def SpxDefinition) {
-	if !goputil.IsInMainPkg(fun) {
+	if !xgoutil.IsInMainPkg(fun) {
 		cacheKey := nonMainPkgSpxDefCacheForFuncsKey{
 			fun:          fun,
 			recvTypeName: recvTypeName,
@@ -781,7 +781,7 @@ func GetSpxDefinitionForFunc(fun *types.Func, recvTypeName string, pkgDoc *pkgdo
 	var detail string
 	if pkgDoc != nil {
 		funcName := fun.Name()
-		if recvTypeName == "" || goputil.IsGoptMethodName(funcName) {
+		if recvTypeName == "" || xgoutil.IsXGotMethodName(funcName) {
 			detail = pkgDoc.Funcs[funcName]
 		} else if typeDoc, ok := pkgDoc.Types[recvTypeName]; ok {
 			detail = typeDoc.Methods[funcName]
@@ -800,7 +800,7 @@ func GetSpxDefinitionForFunc(fun *types.Func, recvTypeName string, pkgDoc *pkgdo
 		TypeHint: fun.Type(),
 
 		ID: SpxDefinitionIdentifier{
-			Package:    ToPtr(goputil.PkgPath(fun.Pkg())),
+			Package:    ToPtr(xgoutil.PkgPath(fun.Pkg())),
 			Name:       &idName,
 			OverloadID: overloadID,
 		},
@@ -818,37 +818,37 @@ func GetSpxDefinitionForFunc(fun *types.Func, recvTypeName string, pkgDoc *pkgdo
 // makeSpxDefinitionOverviewForFunc makes an overview string for a function that
 // is used in [SpxDefinition].
 func makeSpxDefinitionOverviewForFunc(fun *types.Func) (overview, parsedRecvTypeName, parsedName string, overloadID *string) {
-	isGopPkg := goputil.IsMarkedAsGopPackage(fun.Pkg())
+	isXGoPkg := xgoutil.IsMarkedAsXGoPackage(fun.Pkg())
 	name := fun.Name()
 	sig := fun.Type().(*types.Signature)
 
 	var sb strings.Builder
 	sb.WriteString("func ")
 
-	var isGoptMethod bool
+	var isXGotMethod bool
 	if recv := sig.Recv(); recv != nil {
-		recvType := goputil.DerefType(recv.Type())
+		recvType := xgoutil.DerefType(recv.Type())
 		if named, ok := recvType.(*types.Named); ok {
 			parsedRecvTypeName = named.Obj().Name()
 		}
-	} else if isGopPkg {
+	} else if isXGoPkg {
 		switch {
-		case strings.HasPrefix(name, goputil.GoptPrefix):
-			recvTypeName, methodName, ok := goputil.SplitGoptMethodName(name, true)
+		case strings.HasPrefix(name, xgoutil.XGotPrefix):
+			recvTypeName, methodName, ok := xgoutil.SplitXGotMethodName(name, true)
 			if !ok {
 				break
 			}
 			parsedRecvTypeName = recvTypeName
 			name = methodName
-			isGoptMethod = true
+			isXGotMethod = true
 		}
 	}
 
 	parsedName = name
-	if isGopPkg {
-		parsedName, overloadID = goputil.ParseGopFuncName(parsedName)
-	} else if !goputil.IsInMainPkg(fun) {
-		parsedName = goputil.ToLowerCamelCase(parsedName)
+	if isXGoPkg {
+		parsedName, overloadID = xgoutil.ParseXGoFuncName(parsedName)
+	} else if !xgoutil.IsInMainPkg(fun) {
+		parsedName = xgoutil.ToLowerCamelCase(parsedName)
 	}
 	sb.WriteString(parsedName)
 	sb.WriteString("(")
@@ -857,7 +857,7 @@ func makeSpxDefinitionOverviewForFunc(fun *types.Func) (overview, parsedRecvType
 		params = append(params, typeParam.Obj().Name()+" Type")
 	}
 	for i := range sig.Params().Len() {
-		if isGoptMethod && i == 0 {
+		if isXGotMethod && i == 0 {
 			continue
 		}
 		param := sig.Params().At(i)
@@ -908,7 +908,7 @@ var nonMainPkgSpxDefCacheForPkgs sync.Map // map[*types.PkgName]SpxDefinition
 
 // GetSpxDefinitionForPkg returns the spx definition for the provided package.
 func GetSpxDefinitionForPkg(pkgName *types.PkgName, pkgDoc *pkgdoc.PkgDoc) (def SpxDefinition) {
-	if !goputil.IsInMainPkg(pkgName) {
+	if !xgoutil.IsInMainPkg(pkgName) {
 		if defIface, ok := nonMainPkgSpxDefCacheForPkgs.Load(pkgName); ok {
 			return defIface.(SpxDefinition)
 		}
@@ -926,7 +926,7 @@ func GetSpxDefinitionForPkg(pkgName *types.PkgName, pkgDoc *pkgdoc.PkgDoc) (def 
 		TypeHint: pkgName.Type(),
 
 		ID: SpxDefinitionIdentifier{
-			Package: ToPtr(goputil.PkgPath(pkgName.Pkg())),
+			Package: ToPtr(xgoutil.PkgPath(pkgName.Pkg())),
 		},
 		Overview: "package " + pkgName.Name(),
 		Detail:   detail,

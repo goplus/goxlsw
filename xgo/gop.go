@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package gop
+package xgo
 
 import (
 	"fmt"
 
-	"github.com/goplus/mod/gopmod"
 	"github.com/goplus/mod/modfile"
+	"github.com/goplus/mod/xgomod"
 )
 
 func init() {
-	gopmod.SpxProject.PkgPaths = []string{"github.com/goplus/spx/v2", "math"}
-	gopmod.SpxProject.Works = []*modfile.Class{{Ext: ".spx", Class: "SpriteImpl"}}
+	xgomod.SpxProject.PkgPaths = []string{"github.com/goplus/spx/v2", "math"}
+	xgomod.SpxProject.Works = []*modfile.Class{{Ext: ".spx", Class: "SpriteImpl"}}
 }
 
 // SetClassfileAutoImportedPackages sets the auto-imported packages for the
@@ -34,7 +34,7 @@ func SetClassfileAutoImportedPackages(id string, pkgs map[string]string) {
 	var project *modfile.Project
 	switch id {
 	case "spx":
-		project = gopmod.SpxProject
+		project = xgomod.SpxProject
 	default:
 		panic(fmt.Sprintf("unknown classfile id: %s", id))
 	}
@@ -42,6 +42,6 @@ func SetClassfileAutoImportedPackages(id string, pkgs map[string]string) {
 	project.Import = nil // Clear previous imports.
 	for k, v := range pkgs {
 		imp := &modfile.Import{Name: k, Path: v}
-		project.Import = append(gopmod.SpxProject.Import, imp)
+		project.Import = append(xgomod.SpxProject.Import, imp)
 	}
 }

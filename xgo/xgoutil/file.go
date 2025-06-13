@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,42 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/token"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgolsw/xgo"
 )
 
 // PosFilename returns the filename for the given position.
-func PosFilename(proj *gop.Project, pos token.Pos) string {
+func PosFilename(proj *xgo.Project, pos token.Pos) string {
 	return proj.Fset.Position(pos).Filename
 }
 
 // NodeFilename returns the filename for the given node.
-func NodeFilename(proj *gop.Project, node ast.Node) string {
+func NodeFilename(proj *xgo.Project, node ast.Node) string {
 	return PosFilename(proj, node.Pos())
 }
 
 // PosTokenFile returns the token file for the given position.
-func PosTokenFile(proj *gop.Project, pos token.Pos) *token.File {
+func PosTokenFile(proj *xgo.Project, pos token.Pos) *token.File {
 	return proj.Fset.File(pos)
 }
 
 // NodeTokenPos returns the token position for the given node.
-func NodeTokenFile(proj *gop.Project, node ast.Node) *token.File {
+func NodeTokenFile(proj *xgo.Project, node ast.Node) *token.File {
 	return PosTokenFile(proj, node.Pos())
 }
 
 // PosASTFile returns the AST file for the given position.
-func PosASTFile(proj *gop.Project, pos token.Pos) *ast.File {
+func PosASTFile(proj *xgo.Project, pos token.Pos) *ast.File {
 	astPkg, _ := proj.ASTPackage()
 	return astPkg.Files[PosFilename(proj, pos)]
 }
 
 // NodeASTFile returns the AST file for the given node.
-func NodeASTFile(proj *gop.Project, node ast.Node) *ast.File {
+func NodeASTFile(proj *xgo.Project, node ast.Node) *ast.File {
 	return PosASTFile(proj, node.Pos())
 }

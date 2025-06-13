@@ -6,9 +6,9 @@ import (
 	"slices"
 	"testing"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop/goputil"
+	xgoast "github.com/goplus/xgo/ast"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -957,7 +957,7 @@ onStart => {
 	for _, tt := range []struct {
 		name           string
 		exprPosition   Position
-		exprFilter     func(gopast.Node) bool
+		exprFilter     func(xgoast.Node) bool
 		wantNil        bool
 		wantKind       SpxInputSlotKind
 		wantAcceptType SpxInputType
@@ -969,7 +969,7 @@ onStart => {
 		{
 			name:           "IntegerLiteral",
 			exprPosition:   Position{Line: 3, Character: 14},
-			exprFilter:     func(node gopast.Node) bool { _, ok := node.(*gopast.BasicLit); return ok },
+			exprFilter:     func(node xgoast.Node) bool { _, ok := node.(*xgoast.BasicLit); return ok },
 			wantKind:       SpxInputSlotKindValue,
 			wantAcceptType: SpxInputTypeInteger,
 			wantInputKind:  SpxInputKindInPlace,
@@ -979,7 +979,7 @@ onStart => {
 		{
 			name:           "FloatLiteral",
 			exprPosition:   Position{Line: 4, Character: 16},
-			exprFilter:     func(node gopast.Node) bool { _, ok := node.(*gopast.BasicLit); return ok },
+			exprFilter:     func(node xgoast.Node) bool { _, ok := node.(*xgoast.BasicLit); return ok },
 			wantKind:       SpxInputSlotKindValue,
 			wantAcceptType: SpxInputTypeDecimal,
 			wantInputKind:  SpxInputKindInPlace,
@@ -989,7 +989,7 @@ onStart => {
 		{
 			name:           "StringLiteral",
 			exprPosition:   Position{Line: 5, Character: 14},
-			exprFilter:     func(node gopast.Node) bool { _, ok := node.(*gopast.BasicLit); return ok },
+			exprFilter:     func(node xgoast.Node) bool { _, ok := node.(*xgoast.BasicLit); return ok },
 			wantKind:       SpxInputSlotKindValue,
 			wantAcceptType: SpxInputTypeString,
 			wantInputKind:  SpxInputKindInPlace,
@@ -999,7 +999,7 @@ onStart => {
 		{
 			name:           "DirectionIdentifier",
 			exprPosition:   Position{Line: 8, Character: 14},
-			exprFilter:     func(node gopast.Node) bool { _, ok := node.(*gopast.Ident); return ok },
+			exprFilter:     func(node xgoast.Node) bool { _, ok := node.(*xgoast.Ident); return ok },
 			wantKind:       SpxInputSlotKindValue,
 			wantAcceptType: SpxInputTypeDirection,
 			wantInputKind:  SpxInputKindInPlace,
@@ -1009,7 +1009,7 @@ onStart => {
 		{
 			name:           "BooleanIdentifier",
 			exprPosition:   Position{Line: 9, Character: 15},
-			exprFilter:     func(node gopast.Node) bool { _, ok := node.(*gopast.Ident); return ok },
+			exprFilter:     func(node xgoast.Node) bool { _, ok := node.(*xgoast.Ident); return ok },
 			wantKind:       SpxInputSlotKindValue,
 			wantAcceptType: SpxInputTypeBoolean,
 			wantInputKind:  SpxInputKindInPlace,
@@ -1019,7 +1019,7 @@ onStart => {
 		{
 			name:           "ColorFunctionCall",
 			exprPosition:   Position{Line: 12, Character: 16},
-			exprFilter:     func(node gopast.Node) bool { _, ok := node.(*gopast.CallExpr); return ok },
+			exprFilter:     func(node xgoast.Node) bool { _, ok := node.(*xgoast.CallExpr); return ok },
 			wantKind:       SpxInputSlotKindValue,
 			wantAcceptType: SpxInputTypeColor,
 			wantInputKind:  SpxInputKindInPlace,
@@ -1032,7 +1032,7 @@ onStart => {
 		{
 			name:         "NonValueNode",
 			exprPosition: Position{Line: 15, Character: 16},
-			exprFilter:   func(node gopast.Node) bool { _, ok := node.(*gopast.CompositeLit); return ok },
+			exprFilter:   func(node xgoast.Node) bool { _, ok := node.(*xgoast.CompositeLit); return ok },
 			wantNil:      true,
 		},
 	} {
@@ -1040,9 +1040,9 @@ onStart => {
 			pos := PosAt(result.proj, astFile, tt.exprPosition)
 			require.True(t, pos.IsValid())
 
-			var expr gopast.Expr
-			goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-				if node, ok := node.(gopast.Expr); ok && tt.exprFilter(node) {
+			var expr xgoast.Expr
+			xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+				if node, ok := node.(xgoast.Expr); ok && tt.exprFilter(node) {
 					expr = node
 					return false
 				}
@@ -1092,26 +1092,26 @@ onStart => {
 	for _, tt := range []struct {
 		name         string
 		exprPosition Position
-		exprFilter   func(gopast.Node) bool
+		exprFilter   func(xgoast.Node) bool
 		wantNil      bool
 		wantName     string
 	}{
 		{
 			name:         "ExistingIdentifier",
 			exprPosition: Position{Line: 6, Character: 2},
-			exprFilter:   func(node gopast.Node) bool { _, ok := node.(*gopast.Ident); return ok },
+			exprFilter:   func(node xgoast.Node) bool { _, ok := node.(*xgoast.Ident); return ok },
 			wantName:     "varA",
 		},
 		{
 			name:         "CallExpr",
 			exprPosition: Position{Line: 7, Character: 2},
-			exprFilter:   func(node gopast.Node) bool { _, ok := node.(*gopast.CallExpr); return ok },
+			exprFilter:   func(node xgoast.Node) bool { _, ok := node.(*xgoast.CallExpr); return ok },
 			wantNil:      true,
 		},
 		{
 			name:         "BasicLit",
 			exprPosition: Position{Line: 8, Character: 14},
-			exprFilter:   func(node gopast.Node) bool { _, ok := node.(*gopast.BasicLit); return ok },
+			exprFilter:   func(node xgoast.Node) bool { _, ok := node.(*xgoast.BasicLit); return ok },
 			wantNil:      true,
 		},
 	} {
@@ -1119,9 +1119,9 @@ onStart => {
 			pos := PosAt(result.proj, astFile, tt.exprPosition)
 			require.True(t, pos.IsValid())
 
-			var expr gopast.Expr
-			goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-				if node, ok := node.(gopast.Expr); ok && tt.exprFilter(node) {
+			var expr xgoast.Expr
+			xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+				if node, ok := node.(xgoast.Expr); ok && tt.exprFilter(node) {
 					expr = node
 					return false
 				}
@@ -1242,9 +1242,9 @@ onStart => {
 			pos := PosAt(result.proj, astFile, tt.litPosition)
 			require.True(t, pos.IsValid())
 
-			var lit *gopast.BasicLit
-			goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-				if node, ok := node.(*gopast.BasicLit); ok {
+			var lit *xgoast.BasicLit
+			xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+				if node, ok := node.(*xgoast.BasicLit); ok {
 					lit = node
 					return false
 				}
@@ -1264,8 +1264,8 @@ onStart => {
 	}
 
 	t.Run("InvalidIntLiteral", func(t *testing.T) {
-		invalidIntLit := &gopast.BasicLit{
-			Kind:  goptoken.INT,
+		invalidIntLit := &xgoast.BasicLit{
+			Kind:  xgotoken.INT,
 			Value: "not.a.int",
 		}
 		got := createValueInputSlotFromBasicLit(result, invalidIntLit, nil)
@@ -1273,8 +1273,8 @@ onStart => {
 	})
 
 	t.Run("InvalidFloatLiteral", func(t *testing.T) {
-		invalidFloatLit := &gopast.BasicLit{
-			Kind:  goptoken.FLOAT,
+		invalidFloatLit := &xgoast.BasicLit{
+			Kind:  xgotoken.FLOAT,
 			Value: "not.a.float",
 		}
 		got := createValueInputSlotFromBasicLit(result, invalidFloatLit, nil)
@@ -1282,8 +1282,8 @@ onStart => {
 	})
 
 	t.Run("UnsupportedLiteralKind", func(t *testing.T) {
-		unsupportedLit := &gopast.BasicLit{
-			Kind:  goptoken.CHAR,
+		unsupportedLit := &xgoast.BasicLit{
+			Kind:  xgotoken.CHAR,
 			Value: "'c'",
 		}
 		got := createValueInputSlotFromBasicLit(result, unsupportedLit, nil)
@@ -1291,8 +1291,8 @@ onStart => {
 	})
 
 	t.Run("InvalidStringLiteral", func(t *testing.T) {
-		invalidStringLit := &gopast.BasicLit{
-			Kind:  goptoken.STRING,
+		invalidStringLit := &xgoast.BasicLit{
+			Kind:  xgotoken.STRING,
 			Value: "\"unclosed string literal", // Missing ending quote.
 		}
 		got := createValueInputSlotFromBasicLit(result, invalidStringLit, nil)
@@ -1417,9 +1417,9 @@ onStart => {
 			pos := PosAt(result.proj, astFile, tt.identPosition)
 			require.True(t, pos.IsValid())
 
-			var ident *gopast.Ident
-			goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-				if node, ok := node.(*gopast.Ident); ok {
+			var ident *xgoast.Ident
+			xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+				if node, ok := node.(*xgoast.Ident); ok {
 					ident = node
 					return false
 				}
@@ -1528,9 +1528,9 @@ onStart => {
 			pos := PosAt(result.proj, astFile, tt.exprPosition)
 			require.True(t, pos.IsValid())
 
-			var unaryExpr *gopast.UnaryExpr
-			goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-				if expr, ok := node.(*gopast.UnaryExpr); ok {
+			var unaryExpr *xgoast.UnaryExpr
+			xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+				if expr, ok := node.(*xgoast.UnaryExpr); ok {
 					unaryExpr = expr
 					return false
 				}
@@ -1603,9 +1603,9 @@ onStart => {
 			pos := PosAt(result.proj, astFile, tt.callExprPosition)
 			require.True(t, pos.IsValid())
 
-			var callExpr *gopast.CallExpr
-			goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-				if node, ok := node.(*gopast.CallExpr); ok {
+			var callExpr *xgoast.CallExpr
+			xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+				if node, ok := node.(*xgoast.CallExpr); ok {
 					callExpr = node
 					return false
 				}
@@ -1634,14 +1634,14 @@ onStart => {
 	}
 
 	t.Run("NonIdentifierFunction", func(t *testing.T) {
-		callExpr := &gopast.CallExpr{
-			Fun: &gopast.SelectorExpr{
-				X:   &gopast.Ident{Name: "math"},
-				Sel: &gopast.Ident{Name: "Max"},
+		callExpr := &xgoast.CallExpr{
+			Fun: &xgoast.SelectorExpr{
+				X:   &xgoast.Ident{Name: "math"},
+				Sel: &xgoast.Ident{Name: "Max"},
 			},
-			Args: []gopast.Expr{
-				&gopast.BasicLit{Kind: goptoken.INT, Value: "1"},
-				&gopast.BasicLit{Kind: goptoken.INT, Value: "2"},
+			Args: []xgoast.Expr{
+				&xgoast.BasicLit{Kind: xgotoken.INT, Value: "1"},
+				&xgoast.BasicLit{Kind: xgotoken.INT, Value: "2"},
 			},
 		}
 		got := createValueInputSlotFromColorFuncCall(result, callExpr, nil)
@@ -1649,9 +1649,9 @@ onStart => {
 	})
 
 	t.Run("NilFunctionType", func(t *testing.T) {
-		callExpr := &gopast.CallExpr{
-			Fun:  &gopast.Ident{Name: "unknownFunction"},
-			Args: []gopast.Expr{&gopast.BasicLit{Kind: goptoken.INT, Value: "1"}},
+		callExpr := &xgoast.CallExpr{
+			Fun:  &xgoast.Ident{Name: "unknownFunction"},
+			Args: []xgoast.Expr{&xgoast.BasicLit{Kind: xgotoken.INT, Value: "1"}},
 		}
 		got := createValueInputSlotFromColorFuncCall(result, callExpr, nil)
 		assert.Nil(t, got)
@@ -1800,9 +1800,9 @@ onStart => {
 		pos := PosAt(result.proj, astFile, Position{Line: 6, Character: 11})
 		require.True(t, pos.IsValid())
 
-		var callExpr *gopast.CallExpr
-		goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-			if node, ok := node.(*gopast.CallExpr); ok {
+		var callExpr *xgoast.CallExpr
+		xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+			if node, ok := node.(*xgoast.CallExpr); ok {
 				callExpr = node
 				return false
 			}
@@ -1825,9 +1825,9 @@ onStart => {
 		pos := PosAt(result.proj, astFile, Position{Line: 2, Character: 2})
 		require.True(t, pos.IsValid())
 
-		var callExpr *gopast.CallExpr
-		goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-			if node, ok := node.(*gopast.CallExpr); ok {
+		var callExpr *xgoast.CallExpr
+		xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+			if node, ok := node.(*xgoast.CallExpr); ok {
 				callExpr = node
 				return false
 			}
@@ -1850,9 +1850,9 @@ onStart => {
 		pos := PosAt(result.proj, astFile, Position{Line: 5, Character: 2})
 		require.True(t, pos.IsValid())
 
-		var callExpr *gopast.CallExpr
-		goputil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node gopast.Node) bool {
-			if node, ok := node.(*gopast.CallExpr); ok {
+		var callExpr *xgoast.CallExpr
+		xgoutil.WalkPathEnclosingInterval(astFile, pos, pos, false, func(node xgoast.Node) bool {
+			if node, ok := node.(*xgoast.CallExpr); ok {
 				callExpr = node
 				return false
 			}
@@ -1868,12 +1868,12 @@ onStart => {
 func TestIsBlank(t *testing.T) {
 	for _, tt := range []struct {
 		name string
-		expr gopast.Expr
+		expr xgoast.Expr
 		want bool
 	}{
-		{"BlankIdent", &gopast.Ident{Name: "_"}, true},
-		{"NonBlankIdent", &gopast.Ident{Name: "variable"}, false},
-		{"BasicLit", &gopast.BasicLit{Value: "test"}, false},
+		{"BlankIdent", &xgoast.Ident{Name: "_"}, true},
+		{"NonBlankIdent", &xgoast.Ident{Name: "variable"}, false},
+		{"BasicLit", &xgoast.BasicLit{Value: "test"}, false},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			got := isBlank(tt.expr)

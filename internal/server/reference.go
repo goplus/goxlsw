@@ -3,9 +3,9 @@ package server
 import (
 	"go/types"
 
-	gopast "github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop/goputil"
+	xgoast "github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_references
@@ -19,7 +19,7 @@ func (s *Server) textDocumentReferences(params *ReferenceParams) ([]Location, er
 	}
 	position := ToPosition(result.proj, astFile, params.Position)
 
-	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(result.proj, astFile, position)
 	typeInfo := getTypeInfo(result.proj)
 	obj := typeInfo.ObjectOf(ident)
 	if obj == nil {
@@ -36,13 +36,13 @@ func (s *Server) textDocumentReferences(params *ReferenceParams) ([]Location, er
 	}
 
 	if params.Context.IncludeDeclaration {
-		defIdent := goputil.DefIdentFor(typeInfo, obj)
+		defIdent := xgoutil.DefIdentFor(typeInfo, obj)
 		if defIdent == nil {
 			objPos := obj.Pos()
-			if goputil.PosTokenFile(result.proj, objPos) != nil {
+			if xgoutil.PosTokenFile(result.proj, objPos) != nil {
 				locations = append(locations, s.locationForPos(result.proj, objPos))
 			}
-		} else if goputil.NodeTokenFile(result.proj, defIdent) != nil {
+		} else if xgoutil.NodeTokenFile(result.proj, defIdent) != nil {
 			locations = append(locations, s.locationForNode(result.proj, defIdent))
 		}
 	}
@@ -52,7 +52,7 @@ func (s *Server) textDocumentReferences(params *ReferenceParams) ([]Location, er
 
 // findReferenceLocations returns all locations where the given object is referenced.
 func (s *Server) findReferenceLocations(result *compileResult, obj types.Object) []Location {
-	refIdents := goputil.RefIdentsFor(getTypeInfo(result.proj), obj)
+	refIdents := xgoutil.RefIdentsFor(getTypeInfo(result.proj), obj)
 	if len(refIdents) == 0 {
 		return nil
 	}
@@ -96,8 +96,8 @@ func (s *Server) findEmbeddedInterfaceReferences(result *compileResult, iface *t
 		}
 		seenIfaces[current] = true
 
-		goputil.RangeASTSpecs(result.proj, token.TYPE, func(spec gopast.Spec) {
-			typeSpec := spec.(*gopast.TypeSpec)
+		xgoutil.RangeASTSpecs(result.proj, token.TYPE, func(spec xgoast.Spec) {
+			typeSpec := spec.(*xgoast.TypeSpec)
 			typeName := typeInfo.ObjectOf(typeSpec.Name)
 			if typeName == nil {
 				return
@@ -127,8 +127,8 @@ func (s *Server) findEmbeddedInterfaceReferences(result *compileResult, iface *t
 func (s *Server) findImplementingMethodReferences(result *compileResult, iface *types.Interface, methodName string) []Location {
 	typeInfo := getTypeInfo(result.proj)
 	var locations []Location
-	goputil.RangeASTSpecs(result.proj, token.TYPE, func(spec gopast.Spec) {
-		typeSpec := spec.(*gopast.TypeSpec)
+	xgoutil.RangeASTSpecs(result.proj, token.TYPE, func(spec xgoast.Spec) {
+		typeSpec := spec.(*xgoast.TypeSpec)
 		typeName := typeInfo.ObjectOf(typeSpec.Name)
 		if typeName == nil {
 			return
@@ -155,8 +155,8 @@ func (s *Server) findInterfaceMethodReferences(result *compileResult, fn *types.
 	recvType := fn.Type().(*types.Signature).Recv().Type()
 	seenIfaces := make(map[*types.Interface]bool)
 
-	goputil.RangeASTSpecs(result.proj, token.TYPE, func(spec gopast.Spec) {
-		typeSpec := spec.(*gopast.TypeSpec)
+	xgoutil.RangeASTSpecs(result.proj, token.TYPE, func(spec xgoast.Spec) {
+		typeSpec := spec.(*xgoast.TypeSpec)
 		typeName := typeInfo.ObjectOf(typeSpec.Name)
 		if typeName == nil {
 			return
@@ -188,8 +188,8 @@ func (s *Server) handleEmbeddedFieldReferences(result *compileResult, obj types.
 		}
 
 		seenTypes := make(map[types.Type]bool)
-		goputil.RangeASTSpecs(result.proj, token.TYPE, func(spec gopast.Spec) {
-			typeSpec := spec.(*gopast.TypeSpec)
+		xgoutil.RangeASTSpecs(result.proj, token.TYPE, func(spec xgoast.Spec) {
+			typeSpec := spec.(*xgoast.TypeSpec)
 			typeName := typeInfo.ObjectOf(typeSpec.Name)
 			if typeName == nil {
 				return
@@ -240,8 +240,8 @@ func (s *Server) findEmbeddedMethodReferences(result *compileResult, fn *types.F
 	}
 	if hasEmbed {
 		typeInfo := getTypeInfo(result.proj)
-		goputil.RangeASTSpecs(result.proj, token.TYPE, func(spec gopast.Spec) {
-			typeSpec := spec.(*gopast.TypeSpec)
+		xgoutil.RangeASTSpecs(result.proj, token.TYPE, func(spec xgoast.Spec) {
+			typeSpec := spec.(*xgoast.TypeSpec)
 			typeName := typeInfo.ObjectOf(typeSpec.Name)
 			if typeName == nil {
 				return

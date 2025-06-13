@@ -19,7 +19,7 @@ var (
   Bullet Bullet
 )
 type Score int
-run "assets",    { Title:    "Bullet (by Go+)" }
+run "assets",    { Title:    "Bullet (by XGo)" }
 `),
 		}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
@@ -44,18 +44,18 @@ var (
 	Bullet     Bullet
 )
 
-run "assets", {Title: "Bullet (by Go+)"}
+run "assets", {Title: "Bullet (by XGo)"}
 `,
 		})
 	})
 
 	t.Run("NonSpxFile", func(t *testing.T) {
 		m := map[string][]byte{
-			"main.gop": []byte(`echo "Hello, Go+!"`),
+			"main.xgo": []byte(`echo "Hello, XGo!"`),
 		}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		params := &DocumentFormattingParams{
-			TextDocument: TextDocumentIdentifier{URI: "file:///main.gop"},
+			TextDocument: TextDocumentIdentifier{URI: "file:///main.xgo"},
 		}
 
 		edits, err := s.textDocumentFormatting(params)
@@ -76,7 +76,7 @@ run "assets", {Title: "Bullet (by Go+)"}
 
 	t.Run("NoChangesNeeded", func(t *testing.T) {
 		m := map[string][]byte{
-			"main.spx": []byte(`run "assets", {Title: "Bullet (by Go+)"}` + "\n"),
+			"main.spx": []byte(`run "assets", {Title: "Bullet (by XGo)"}` + "\n"),
 		}
 		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
 		params := &DocumentFormattingParams{

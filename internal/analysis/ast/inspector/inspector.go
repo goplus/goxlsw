@@ -35,7 +35,7 @@ package inspector
 // and found to degrade performance significantly (30%).
 
 import (
-	"github.com/goplus/gop/ast"
+	"github.com/goplus/xgo/ast"
 )
 
 // An Inspector provides methods for inspecting

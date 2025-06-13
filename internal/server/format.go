@@ -8,13 +8,13 @@ import (
 	"slices"
 	"time"
 
-	gopast "github.com/goplus/gop/ast"
-	gopfmt "github.com/goplus/gop/format"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/gop/goputil"
-	"github.com/goplus/goxlsw/internal/vfs"
+	xgoast "github.com/goplus/xgo/ast"
+	xgofmt "github.com/goplus/xgo/format"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
+	"github.com/goplus/xgolsw/internal/vfs"
+	"github.com/goplus/xgolsw/xgo"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification#textDocument_formatting
@@ -71,13 +71,13 @@ type spxFormatter func(snapshot *vfs.MapFS, spxFile string) (formatted []byte, e
 // formatSpx applies a series of formatters to an spx source file in order.
 //
 // The formatters are applied in the following order:
-//  1. Go+ formatter
+//  1. XGo formatter
 //  2. Lambda parameter elimination
 //  3. Declaration reordering
-func (s *Server) formatSpx(snapshot *gop.Project, spxFile string, original []byte) ([]byte, error) {
+func (s *Server) formatSpx(snapshot *xgo.Project, spxFile string, original []byte) ([]byte, error) {
 	var formatted []byte = original
 	for _, formatter := range []spxFormatter{
-		s.formatSpxGop,
+		s.formatSpxXGo,
 		s.formatSpxLambda,
 		s.formatSpxDecls,
 	} {
@@ -98,13 +98,13 @@ func (s *Server) formatSpx(snapshot *gop.Project, spxFile string, original []byt
 	return formatted, nil
 }
 
-// formatSpxGop formats an spx source file with Go+ formatter.
-func (s *Server) formatSpxGop(snapshot *vfs.MapFS, spxFile string) ([]byte, error) {
+// formatSpxXGo formats an spx source file with XGo formatter.
+func (s *Server) formatSpxXGo(snapshot *vfs.MapFS, spxFile string) ([]byte, error) {
 	original, err := vfs.ReadFile(snapshot, spxFile)
 	if err != nil {
 		return nil, err
 	}
-	formatted, err := gopfmt.Source(original, true, spxFile)
+	formatted, err := xgofmt.Source(original, true, spxFile)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (s *Server) formatSpxLambda(snapshot *vfs.MapFS, spxFile string) ([]byte, e
 
 	// Format the modified AST.
 	var formattedBuf bytes.Buffer
-	if err := gopfmt.Node(&formattedBuf, snapshot.Fset, astFile); err != nil {
+	if err := xgofmt.Node(&formattedBuf, snapshot.Fset, astFile); err != nil {
 		return nil, err
 	}
 
@@ -146,11 +146,11 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 	}
 
 	// Find the position of the first declaration that contains any syntax error.
-	var errorPos goptoken.Pos
+	var errorPos xgotoken.Pos
 	for _, decl := range astFile.Decls {
-		gopast.Inspect(decl, func(node gopast.Node) bool {
+		xgoast.Inspect(decl, func(node xgoast.Node) bool {
 			switch node.(type) {
-			case *gopast.BadExpr, *gopast.BadStmt, *gopast.BadDecl:
+			case *xgoast.BadExpr, *xgoast.BadStmt, *xgoast.BadDecl:
 				if !errorPos.IsValid() || decl.Pos() < errorPos {
 					errorPos = decl.Pos()
 					return false
@@ -161,7 +161,7 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 	}
 
 	// Get the start position of the shadow entry if it exists and not empty.
-	var shadowEntryPos goptoken.Pos
+	var shadowEntryPos xgotoken.Pos
 	if astFile.ShadowEntry != nil &&
 		astFile.ShadowEntry.Pos().IsValid() &&
 		astFile.ShadowEntry.Pos() != errorPos &&
@@ -174,14 +174,14 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 
 	// Collect all declarations.
 	var (
-		importDecls       []gopast.Decl
-		typeDecls         []gopast.Decl
-		methodDecls       []gopast.Decl
-		constDecls        []gopast.Decl
-		varBlocks         []*gopast.GenDecl
-		funcDecls         []gopast.Decl
-		otherDecls        []gopast.Decl
-		processedComments = make(map[*gopast.CommentGroup]struct{})
+		importDecls       []xgoast.Decl
+		typeDecls         []xgoast.Decl
+		methodDecls       []xgoast.Decl
+		constDecls        []xgoast.Decl
+		varBlocks         []*xgoast.GenDecl
+		funcDecls         []xgoast.Decl
+		otherDecls        []xgoast.Decl
+		processedComments = make(map[*xgoast.CommentGroup]struct{})
 	)
 	fset := snapshot.Fset
 	for _, decl := range astFile.Decls {
@@ -191,20 +191,20 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 		}
 
 		switch decl := decl.(type) {
-		case *gopast.GenDecl:
+		case *xgoast.GenDecl:
 			switch decl.Tok {
-			case goptoken.IMPORT:
+			case xgotoken.IMPORT:
 				importDecls = append(importDecls, decl)
-			case goptoken.TYPE:
+			case xgotoken.TYPE:
 				typeDecls = append(typeDecls, decl)
-			case goptoken.CONST:
+			case xgotoken.CONST:
 				constDecls = append(constDecls, decl)
-			case goptoken.VAR:
+			case xgotoken.VAR:
 				varBlocks = append(varBlocks, decl)
 			default:
 				otherDecls = append(otherDecls, decl)
 			}
-		case *gopast.FuncDecl:
+		case *xgoast.FuncDecl:
 			if decl.Shadow {
 				continue
 			}
@@ -213,7 +213,7 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 			} else {
 				funcDecls = append(funcDecls, decl)
 			}
-		case *gopast.OverloadFuncDecl:
+		case *xgoast.OverloadFuncDecl:
 			if decl.Recv != nil && !decl.IsClass {
 				methodDecls = append(methodDecls, decl)
 			} else {
@@ -243,14 +243,14 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 
 	// Split var blocks into two groups: with initialization and without initialization.
 	var (
-		varBlocksWithInit    []*gopast.GenDecl // Blocks with initialization
-		varBlocksWithoutInit []*gopast.GenDecl // Blocks without initialization
+		varBlocksWithInit    []*xgoast.GenDecl // Blocks with initialization
+		varBlocksWithoutInit []*xgoast.GenDecl // Blocks without initialization
 	)
 
 	for _, decl := range varBlocks {
 		// Check if the variable declaration has initialization expressions.
-		hasInit := slices.ContainsFunc(decl.Specs, func(spec gopast.Spec) bool {
-			vs, ok := spec.(*gopast.ValueSpec)
+		hasInit := slices.ContainsFunc(decl.Specs, func(spec xgoast.Spec) bool {
+			vs, ok := spec.(*xgoast.ValueSpec)
 			return ok && len(vs.Values) > 0
 		})
 
@@ -262,7 +262,7 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 	}
 
 	// Reorder declarations: imports -> types -> consts -> vars (without init) -> vars (with init) -> funcs -> others.
-	sortedDecls := make([]gopast.Decl, 0, len(astFile.Decls))
+	sortedDecls := make([]xgoast.Decl, 0, len(astFile.Decls))
 	sortedDecls = append(sortedDecls, importDecls...)
 	sortedDecls = append(sortedDecls, typeDecls...)
 	sortedDecls = append(sortedDecls, methodDecls...)
@@ -296,7 +296,7 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 	}
 
 	// Find comments that appears on the same line after the given position.
-	findInlineComments := func(pos goptoken.Pos) *gopast.CommentGroup {
+	findInlineComments := func(pos xgotoken.Pos) *xgoast.CommentGroup {
 		line := fset.Position(pos).Line
 		for _, cg := range astFile.Comments {
 			if fset.Position(cg.Pos()).Line != line {
@@ -310,8 +310,8 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 	}
 
 	// Handle declarations and floating comments in order of their position.
-	processDecl := func(decl gopast.Decl) error {
-		if genDecl, ok := decl.(*gopast.GenDecl); ok && genDecl.Tok == goptoken.VAR {
+	processDecl := func(decl xgoast.Decl) error {
+		if genDecl, ok := decl.(*xgoast.GenDecl); ok && genDecl.Tok == xgotoken.VAR {
 			currentVarBlocks := varBlocksWithoutInit
 			if len(currentVarBlocks) == 0 || currentVarBlocks[0] != genDecl {
 				currentVarBlocks = varBlocksWithInit
@@ -346,7 +346,7 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 					formattedBuf.WriteByte('\n')
 				}
 
-				var bodyStartPos goptoken.Pos
+				var bodyStartPos xgotoken.Pos
 				if varBlock.Lparen.IsValid() {
 					if cg := findInlineComments(varBlock.Lparen); cg != nil {
 						cgStart := fset.Position(cg.Pos()).Offset
@@ -362,9 +362,9 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 						bodyStartPos = varBlock.Lparen + 1
 					}
 				} else {
-					bodyStartPos = varBlock.Pos() + goptoken.Pos(len(varBlock.Tok.String())) + 1
+					bodyStartPos = varBlock.Pos() + xgotoken.Pos(len(varBlock.Tok.String())) + 1
 				}
-				var bodyEndPos goptoken.Pos
+				var bodyEndPos xgotoken.Pos
 				if varBlock.Rparen.IsValid() {
 					bodyEndPos = varBlock.Rparen - 1
 				} else {
@@ -487,17 +487,17 @@ func (s *Server) formatSpxDecls(snapshot *vfs.MapFS, spxFile string) ([]byte, er
 	if len(formatted) == 0 || string(formatted) == "\n" {
 		return []byte{}, nil
 	}
-	return gopfmt.Source(formatted, true, spxFile)
+	return xgofmt.Source(formatted, true, spxFile)
 }
 
 // getDeclDoc returns the doc comment of a declaration if any.
-func getDeclDoc(decl gopast.Decl) *gopast.CommentGroup {
+func getDeclDoc(decl xgoast.Decl) *xgoast.CommentGroup {
 	switch decl := decl.(type) {
-	case *gopast.GenDecl:
+	case *xgoast.GenDecl:
 		return decl.Doc
-	case *gopast.FuncDecl:
+	case *xgoast.FuncDecl:
 		return decl.Doc
-	case *gopast.OverloadFuncDecl:
+	case *xgoast.OverloadFuncDecl:
 		return decl.Doc
 	default:
 		return nil
@@ -516,14 +516,14 @@ func getDeclDoc(decl gopast.Decl) *gopast.CommentGroup {
 //  2. Only the last parameter of the lambda is checked.
 //
 // We may complete it in the future, if needed.
-func eliminateUnusedLambdaParams(proj *gop.Project, astFile *gopast.File) {
+func eliminateUnusedLambdaParams(proj *xgo.Project, astFile *xgoast.File) {
 	typeInfo := getTypeInfo(proj)
-	gopast.Inspect(astFile, func(n gopast.Node) bool {
-		callExpr, ok := n.(*gopast.CallExpr)
+	xgoast.Inspect(astFile, func(n xgoast.Node) bool {
+		callExpr, ok := n.(*xgoast.CallExpr)
 		if !ok {
 			return true
 		}
-		funIdent, ok := callExpr.Fun.(*gopast.Ident)
+		funIdent, ok := callExpr.Fun.(*xgoast.Ident)
 		if !ok {
 			return true
 		}
@@ -533,7 +533,7 @@ func eliminateUnusedLambdaParams(proj *gop.Project, astFile *gopast.File) {
 		}
 		paramsType := funType.Signature().Params()
 		for argIdx, argExpr := range callExpr.Args {
-			lambdaExpr, ok := argExpr.(*gopast.LambdaExpr2)
+			lambdaExpr, ok := argExpr.(*xgoast.LambdaExpr2)
 			if !ok {
 				continue
 			}
@@ -595,7 +595,7 @@ func eliminateUnusedLambdaParams(proj *gop.Project, astFile *gopast.File) {
 }
 
 // getFuncAndOverloadsType returns the function type and all its overloads.
-func getFuncAndOverloadsType(proj *gop.Project, funIdent *gopast.Ident) (fun *types.Func, overloads []*types.Func) {
+func getFuncAndOverloadsType(proj *xgo.Project, funIdent *xgoast.Ident) (fun *types.Func, overloads []*types.Func) {
 	funTypeObj := getTypeInfo(proj).ObjectOf(funIdent)
 	if funTypeObj == nil {
 		return
@@ -621,16 +621,16 @@ func getFuncAndOverloadsType(proj *gop.Project, funIdent *gopast.Ident) (fun *ty
 		return
 	}
 	recvNamed, ok := recvType.(*types.Named)
-	if !ok || !goputil.IsNamedStructType(recvNamed) {
+	if !ok || !xgoutil.IsNamedStructType(recvNamed) {
 		return
 	}
 	var underlineFunType *types.Func
-	goputil.WalkStruct(recvNamed, func(member types.Object, selector *types.Named) bool {
+	xgoutil.WalkStruct(recvNamed, func(member types.Object, selector *types.Named) bool {
 		method, ok := member.(*types.Func)
 		if !ok {
 			return true
 		}
-		if pn, overloadId := goputil.ParseGopFuncName(method.Name()); pn == funIdent.Name && overloadId == nil {
+		if pn, overloadId := xgoutil.ParseXGoFuncName(method.Name()); pn == funIdent.Name && overloadId == nil {
 			underlineFunType = method
 			return false
 		}
@@ -639,10 +639,10 @@ func getFuncAndOverloadsType(proj *gop.Project, funIdent *gopast.Ident) (fun *ty
 	if underlineFunType == nil {
 		return
 	}
-	return funType, goputil.ExpandGopOverloadableFunc(underlineFunType)
+	return funType, xgoutil.ExpandXGoOverloadableFunc(underlineFunType)
 }
 
-func isIdentUsed(typeInfo *typesutil.Info, ident *gopast.Ident) bool {
+func isIdentUsed(typeInfo *typesutil.Info, ident *xgoast.Ident) bool {
 	obj := typeInfo.ObjectOf(ident)
 	for _, usedObj := range typeInfo.Uses {
 		if usedObj == obj {

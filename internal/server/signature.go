@@ -4,7 +4,7 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/goplus/goxlsw/gop/goputil"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_signatureHelp
@@ -18,7 +18,7 @@ func (s *Server) textDocumentSignatureHelp(params *SignatureHelpParams) (*Signat
 	}
 	position := ToPosition(result.proj, astFile, params.Position)
 
-	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(result.proj, astFile, position)
 	obj := getTypeInfo(result.proj).ObjectOf(ident)
 	if obj == nil {
 		return nil, nil

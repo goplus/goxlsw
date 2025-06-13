@@ -10,15 +10,15 @@ import (
 	"strings"
 	"unicode"
 
-	gopast "github.com/goplus/gop/ast"
-	gopscanner "github.com/goplus/gop/scanner"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/gop/goputil"
-	"github.com/goplus/goxlsw/internal/pkgdata"
-	"github.com/goplus/goxlsw/internal/vfs"
-	"github.com/goplus/goxlsw/pkgdoc"
+	xgoast "github.com/goplus/xgo/ast"
+	xgoscanner "github.com/goplus/xgo/scanner"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
+	"github.com/goplus/xgolsw/internal/pkgdata"
+	"github.com/goplus/xgolsw/internal/vfs"
+	"github.com/goplus/xgolsw/pkgdoc"
+	"github.com/goplus/xgolsw/xgo"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_completion
@@ -38,7 +38,7 @@ func (s *Server) textDocumentCompletion(params *CompletionParams) ([]CompletionI
 	if !pos.IsValid() {
 		return nil, nil
 	}
-	innermostScope := goputil.InnermostScopeAt(result.proj, pos)
+	innermostScope := xgoutil.InnermostScopeAt(result.proj, pos)
 	if innermostScope == nil {
 		return nil, nil
 	}
@@ -53,7 +53,7 @@ func (s *Server) textDocumentCompletion(params *CompletionParams) ([]CompletionI
 		spxFile:        spxFile,
 		astFile:        astFile,
 		astFileScope:   typeInfo.Scopes[astFile],
-		tokenFile:      goputil.NodeTokenFile(proj, astFile),
+		tokenFile:      xgoutil.NodeTokenFile(proj, astFile),
 		pos:            pos,
 		innermostScope: innermostScope,
 	}
@@ -87,26 +87,26 @@ const (
 type completionContext struct {
 	itemSet *completionItemSet
 
-	proj           *gop.Project
+	proj           *xgo.Project
 	typeInfo       *typesutil.Info
 	result         *compileResult
 	spxFile        string
-	astFile        *gopast.File
+	astFile        *xgoast.File
 	astFileScope   *types.Scope
-	tokenFile      *goptoken.File
-	pos            goptoken.Pos
+	tokenFile      *xgotoken.File
+	pos            xgotoken.Pos
 	innermostScope *types.Scope
 
 	kind completionKind
 
-	enclosingNode      gopast.Node
-	selectorExpr       *gopast.SelectorExpr
+	enclosingNode      xgoast.Node
+	selectorExpr       *xgoast.SelectorExpr
 	expectedTypes      []types.Type
 	expectedStructType *types.Struct
 	compositeLitType   *types.Named
-	assignTargets      []*gopast.Ident
-	declValueSpec      *gopast.ValueSpec
-	switchTag          gopast.Expr
+	assignTargets      []*xgoast.Ident
+	declValueSpec      *xgoast.ValueSpec
+	switchTag          xgoast.Expr
 	returnIndex        int
 
 	inStringLit       bool
@@ -119,17 +119,17 @@ func (ctx *completionContext) pkgDoc() *pkgdoc.PkgDoc {
 
 // analyze analyzes the completion context to determine the kind of completion needed.
 func (ctx *completionContext) analyze() {
-	path, _ := goputil.PathEnclosingInterval(ctx.astFile, ctx.pos-1, ctx.pos)
+	path, _ := xgoutil.PathEnclosingInterval(ctx.astFile, ctx.pos-1, ctx.pos)
 	for i, node := range slices.Backward(path) {
 		switch node := node.(type) {
-		case *gopast.ImportSpec:
+		case *xgoast.ImportSpec:
 			ctx.kind = completionKindImport
-		case *gopast.SelectorExpr:
+		case *xgoast.SelectorExpr:
 			if node.Sel == nil || node.Sel.End() >= ctx.pos {
 				ctx.kind = completionKindDot
 				ctx.selectorExpr = node
 			}
-		case *gopast.CallExpr:
+		case *xgoast.CallExpr:
 			if _, ok := ctx.typeInfo.Types[node.Fun]; !ok {
 				continue
 			}
@@ -139,7 +139,7 @@ func (ctx *completionContext) analyze() {
 				ctx.kind = completionKindCall
 				ctx.enclosingNode = node
 			}
-		case *gopast.CompositeLit:
+		case *xgoast.CompositeLit:
 			tv, ok := ctx.typeInfo.Types[node]
 			if !ok {
 				// Try to get type from the CompositeLit.Type field.
@@ -150,7 +150,7 @@ func (ctx *completionContext) analyze() {
 					continue
 				}
 			}
-			typ := goputil.DerefType(tv.Type)
+			typ := xgoutil.DerefType(tv.Type)
 			named, ok := typ.(*types.Named)
 			if !ok {
 				continue
@@ -165,8 +165,8 @@ func (ctx *completionContext) analyze() {
 			ctx.expectedStructType = st
 			ctx.compositeLitType = named
 			ctx.enclosingNode = node
-		case *gopast.AssignStmt:
-			if node.Tok != goptoken.ASSIGN && node.Tok != goptoken.DEFINE {
+		case *xgoast.AssignStmt:
+			if node.Tok != xgotoken.ASSIGN && node.Tok != xgotoken.DEFINE {
 				continue
 			}
 			for j, rhs := range node.Rhs {
@@ -178,8 +178,8 @@ func (ctx *completionContext) analyze() {
 					if tv, ok := ctx.typeInfo.Types[node.Lhs[j]]; ok {
 						ctx.expectedTypes = []types.Type{tv.Type}
 					}
-					if ident, ok := node.Lhs[j].(*gopast.Ident); ok {
-						defIdent := goputil.DefIdentFor(ctx.typeInfo, ctx.typeInfo.ObjectOf(ident))
+					if ident, ok := node.Lhs[j].(*xgoast.Ident); ok {
+						defIdent := xgoutil.DefIdentFor(ctx.typeInfo, ctx.typeInfo.ObjectOf(ident))
 						if defIdent != nil {
 							ctx.assignTargets = append(ctx.assignTargets, defIdent)
 						}
@@ -187,7 +187,7 @@ func (ctx *completionContext) analyze() {
 					break
 				}
 			}
-		case *gopast.ReturnStmt:
+		case *xgoast.ReturnStmt:
 			sig := ctx.enclosingFunction(path[i+1:])
 			if sig == nil {
 				continue
@@ -201,21 +201,21 @@ func (ctx *completionContext) analyze() {
 			if ctx.returnIndex >= 0 && ctx.returnIndex < results.Len() {
 				ctx.expectedTypes = []types.Type{results.At(ctx.returnIndex).Type()}
 			}
-		case *gopast.GoStmt:
+		case *xgoast.GoStmt:
 			ctx.kind = completionKindCall
 			ctx.enclosingNode = node.Call
-		case *gopast.DeferStmt:
+		case *xgoast.DeferStmt:
 			ctx.kind = completionKindCall
 			ctx.enclosingNode = node.Call
-		case *gopast.SwitchStmt:
+		case *xgoast.SwitchStmt:
 			ctx.kind = completionKindSwitchCase
 			ctx.switchTag = node.Tag
-		case *gopast.SelectStmt:
+		case *xgoast.SelectStmt:
 			ctx.kind = completionKindSelect
-		case *gopast.DeclStmt:
-			if genDecl, ok := node.Decl.(*gopast.GenDecl); ok && (genDecl.Tok == goptoken.VAR || genDecl.Tok == goptoken.CONST) {
+		case *xgoast.DeclStmt:
+			if genDecl, ok := node.Decl.(*xgoast.GenDecl); ok && (genDecl.Tok == xgotoken.VAR || genDecl.Tok == xgotoken.CONST) {
 				for _, spec := range genDecl.Specs {
-					valueSpec, ok := spec.(*gopast.ValueSpec)
+					valueSpec, ok := spec.(*xgoast.ValueSpec)
 					if !ok || len(valueSpec.Names) == 0 {
 						continue
 					}
@@ -228,14 +228,14 @@ func (ctx *completionContext) analyze() {
 					break
 				}
 			}
-		case *gopast.BasicLit:
-			if node.Kind == goptoken.STRING {
+		case *xgoast.BasicLit:
+			if node.Kind == xgotoken.STRING {
 				if ctx.kind == completionKindUnknown {
 					ctx.kind = completionKindStringLit
 				}
 				ctx.inStringLit = true
 			}
-		case *gopast.BlockStmt:
+		case *xgoast.BlockStmt:
 			ctx.kind = completionKindUnknown
 		}
 	}
@@ -268,33 +268,33 @@ func (ctx *completionContext) isInComment() bool {
 // isInImportStringLit reports whether the position of the current completion
 // context is inside an import string literal.
 func (ctx *completionContext) isInImportStringLit() bool {
-	var s gopscanner.Scanner
+	var s xgoscanner.Scanner
 	s.Init(ctx.tokenFile, ctx.astFile.Code, nil, 0)
 
 	var (
-		lastPos       goptoken.Pos
-		lastTok       goptoken.Token
+		lastPos       xgotoken.Pos
+		lastTok       xgotoken.Token
 		inImportGroup bool
 	)
 	for {
 		pos, tok, lit := s.Scan()
-		if tok == goptoken.EOF {
+		if tok == xgotoken.EOF {
 			break
 		}
 
 		// Track if we're inside an import group.
-		if lastTok == goptoken.IMPORT && tok == goptoken.LPAREN {
+		if lastTok == xgotoken.IMPORT && tok == xgotoken.LPAREN {
 			inImportGroup = true
-		} else if tok == goptoken.RPAREN {
+		} else if tok == xgotoken.RPAREN {
 			inImportGroup = false
 		}
 
 		// Check if we found `import` followed by `"` or we're in an import group.
-		if (lastTok == goptoken.IMPORT || inImportGroup) &&
-			(tok == goptoken.STRING || tok == goptoken.ILLEGAL) {
+		if (lastTok == xgotoken.IMPORT || inImportGroup) &&
+			(tok == xgotoken.STRING || tok == xgotoken.ILLEGAL) {
 			// Check if position is after `import` keyword or within an import
 			// group, and inside a string literal (complete or incomplete).
-			if lastPos <= ctx.pos && ctx.pos <= pos+goptoken.Pos(len(lit)) {
+			if lastPos <= ctx.pos && ctx.pos <= pos+xgotoken.Pos(len(lit)) {
 				return true
 			}
 		}
@@ -309,7 +309,7 @@ func (ctx *completionContext) isInImportStringLit() bool {
 // by a continuous sequence of non-whitespace characters (like an identifier or
 // a member access expression).
 func (ctx *completionContext) isLineStart() bool {
-	fileBase := goptoken.Pos(ctx.tokenFile.Base())
+	fileBase := xgotoken.Pos(ctx.tokenFile.Base())
 	relPos := ctx.pos - fileBase
 	if relPos < 0 || int(relPos) > len(ctx.astFile.Code) {
 		return false
@@ -333,26 +333,26 @@ func (ctx *completionContext) isLineStart() bool {
 
 // isInIdentifier reports whether the position is within an identifier.
 func (ctx *completionContext) isInIdentifier() bool {
-	fileBase := goptoken.Pos(ctx.tokenFile.Base())
+	fileBase := xgotoken.Pos(ctx.tokenFile.Base())
 	relPos := ctx.pos - fileBase
 	if relPos < 0 || int(relPos) > len(ctx.astFile.Code) {
 		return false
 	}
 
-	var s gopscanner.Scanner
+	var s xgoscanner.Scanner
 	s.Init(ctx.tokenFile, ctx.astFile.Code, nil, 0)
 
 	for {
 		pos, tok, lit := s.Scan()
-		if tok == goptoken.EOF {
+		if tok == xgotoken.EOF {
 			break
 		}
 
 		// Check if position is inside this token. For identifiers, we should
 		// be either in the middle or at the end to trigger completion (not
 		// at the beginning).
-		if pos < ctx.pos && ctx.pos <= pos+goptoken.Pos(len(lit)) {
-			return tok == goptoken.IDENT
+		if pos < ctx.pos && ctx.pos <= pos+xgotoken.Pos(len(lit)) {
+			return tok == xgotoken.IDENT
 		}
 
 		// If we've scanned past our position, we're not in an identifier.
@@ -364,9 +364,9 @@ func (ctx *completionContext) isInIdentifier() bool {
 }
 
 // enclosingFunction gets the function signature containing the current position.
-func (ctx *completionContext) enclosingFunction(path []gopast.Node) *types.Signature {
+func (ctx *completionContext) enclosingFunction(path []xgoast.Node) *types.Signature {
 	for _, node := range path {
-		funcDecl, ok := node.(*gopast.FuncDecl)
+		funcDecl, ok := node.(*xgoast.FuncDecl)
 		if !ok {
 			continue
 		}
@@ -384,7 +384,7 @@ func (ctx *completionContext) enclosingFunction(path []gopast.Node) *types.Signa
 }
 
 // findReturnValueIndex finds the index of the return value at the current position.
-func (ctx *completionContext) findReturnValueIndex(ret *gopast.ReturnStmt) int {
+func (ctx *completionContext) findReturnValueIndex(ret *xgoast.ReturnStmt) int {
 	if len(ret.Results) == 0 {
 		return 0
 	}
@@ -470,10 +470,10 @@ func (ctx *completionContext) collectGeneral() error {
 		isInMainScope := ctx.innermostScope == ctx.astFileScope && scope == pkg.Scope()
 		for _, name := range scope.Names() {
 			obj := scope.Lookup(name)
-			if !goputil.IsExportedOrInMainPkg(obj) {
+			if !xgoutil.IsExportedOrInMainPkg(obj) {
 				continue
 			}
-			if defIdent := goputil.DefIdentFor(ctx.typeInfo, obj); defIdent != nil && slices.Contains(ctx.assignTargets, defIdent) {
+			if defIdent := xgoutil.DefIdentFor(ctx.typeInfo, obj); defIdent != nil && slices.Contains(ctx.assignTargets, defIdent) {
 				continue
 			}
 
@@ -483,8 +483,8 @@ func (ctx *completionContext) collectGeneral() error {
 			isSpxFileMatch := ctx.spxFile == name+".spx" || (ctx.spxFile == ctx.result.mainSpxFile && name == "Game")
 			isMainScopeObj := isInMainScope && isSpxFileMatch
 			if isThis || isMainScopeObj {
-				named, ok := goputil.DerefType(obj.Type()).(*types.Named)
-				if ok && goputil.IsNamedStructType(named) {
+				named, ok := xgoutil.DerefType(obj.Type()).(*types.Named)
+				if ok && xgoutil.IsNamedStructType(named) {
 					for _, def := range ctx.result.spxDefinitionsForNamedStruct(named) {
 						if ctx.inSpxEventHandler && def.ID.Name != nil {
 							name := *def.ID.Name
@@ -581,7 +581,7 @@ func (ctx *completionContext) collectDot() error {
 		return nil
 	}
 
-	if ident, ok := ctx.selectorExpr.X.(*gopast.Ident); ok {
+	if ident, ok := ctx.selectorExpr.X.(*xgoast.Ident); ok {
 		if obj := ctx.typeInfo.ObjectOf(ident); obj != nil {
 			if pkgName, ok := obj.(*types.PkgName); ok {
 				return ctx.collectPackageMembers(pkgName.Imported())
@@ -593,7 +593,7 @@ func (ctx *completionContext) collectDot() error {
 	if !ok {
 		return nil
 	}
-	typ := goputil.DerefType(tv.Type)
+	typ := xgoutil.DerefType(tv.Type)
 	named, ok := typ.(*types.Named)
 	if ok && IsInSpxPkg(named.Obj()) && named.Obj().Name() == "Sprite" {
 		typ = GetSpxSpriteImplType()
@@ -601,19 +601,19 @@ func (ctx *completionContext) collectDot() error {
 
 	if iface, ok := typ.Underlying().(*types.Interface); ok {
 		for method := range iface.Methods() {
-			if !goputil.IsExportedOrInMainPkg(method) {
+			if !xgoutil.IsExportedOrInMainPkg(method) {
 				continue
 			}
 
 			var recvTypeName string
-			if named != nil && goputil.IsInMainPkg(named.Obj()) {
+			if named != nil && xgoutil.IsInMainPkg(named.Obj()) {
 				recvTypeName = named.Obj().Name()
 			}
 
 			spxDef := ctx.result.spxDefinitionForMethod(method, recvTypeName)
 			ctx.itemSet.addSpxDefs(spxDef)
 		}
-	} else if named, ok := typ.(*types.Named); ok && goputil.IsNamedStructType(named) {
+	} else if named, ok := typ.(*types.Named); ok && xgoutil.IsNamedStructType(named) {
 		ctx.itemSet.addSpxDefs(ctx.result.spxDefinitionsForNamedStruct(named)...)
 	}
 	return nil
@@ -626,10 +626,10 @@ func (ctx *completionContext) collectPackageMembers(pkg *types.Package) error {
 	}
 
 	var pkgDoc *pkgdoc.PkgDoc
-	if goputil.IsMainPkg(pkg) {
+	if xgoutil.IsMainPkg(pkg) {
 		pkgDoc = ctx.pkgDoc()
 	} else {
-		pkgPath := goputil.PkgPath(pkg)
+		pkgPath := xgoutil.PkgPath(pkg)
 		var err error
 		pkgDoc, err = pkgdata.GetPkgDoc(pkgPath)
 		if err != nil {
@@ -643,7 +643,7 @@ func (ctx *completionContext) collectPackageMembers(pkg *types.Package) error {
 
 // collectCall collects function call completions.
 func (ctx *completionContext) collectCall() error {
-	callExpr, ok := ctx.enclosingNode.(*gopast.CallExpr)
+	callExpr, ok := ctx.enclosingNode.(*xgoast.CallExpr)
 	if !ok {
 		return nil
 	}
@@ -661,8 +661,8 @@ func (ctx *completionContext) collectCall() error {
 		return nil
 	}
 
-	if fun := goputil.FuncFromCallExpr(ctx.typeInfo, callExpr); fun != nil {
-		funcOverloads := goputil.ExpandGopOverloadableFunc(fun)
+	if fun := xgoutil.FuncFromCallExpr(ctx.typeInfo, callExpr); fun != nil {
+		funcOverloads := xgoutil.ExpandXGoOverloadableFunc(fun)
 		if len(funcOverloads) > 0 {
 			expectedTypes := make([]types.Type, 0, len(funcOverloads))
 			for _, funcOverload := range funcOverloads {
@@ -687,7 +687,7 @@ func (ctx *completionContext) collectCall() error {
 }
 
 // getCurrentArgIndex gets the current argument index in a function call.
-func (ctx *completionContext) getCurrentArgIndex(callExpr *gopast.CallExpr) int {
+func (ctx *completionContext) getCurrentArgIndex(callExpr *xgoast.CallExpr) int {
 	if len(callExpr.Args) == 0 {
 		return 0
 	}
@@ -801,11 +801,11 @@ func (ctx *completionContext) getSpxSpriteResource() *SpxSpriteResource {
 		return nil
 	}
 
-	callExpr, ok := ctx.enclosingNode.(*gopast.CallExpr)
+	callExpr, ok := ctx.enclosingNode.(*xgoast.CallExpr)
 	if !ok {
 		return nil
 	}
-	sel, ok := callExpr.Fun.(*gopast.SelectorExpr)
+	sel, ok := callExpr.Fun.(*xgoast.SelectorExpr)
 	if !ok {
 		if ctx.spxFile == "main.spx" {
 			return nil
@@ -813,7 +813,7 @@ func (ctx *completionContext) getSpxSpriteResource() *SpxSpriteResource {
 		return ctx.result.spxResourceSet.sprites[strings.TrimSuffix(ctx.spxFile, ".spx")]
 	}
 
-	ident, ok := sel.X.(*gopast.Ident)
+	ident, ok := sel.X.(*xgoast.Ident)
 	if !ok {
 		return nil
 	}
@@ -849,10 +849,10 @@ func (ctx *completionContext) collectStructLit() error {
 	seenFields := make(map[string]struct{})
 
 	// Collect already used fields.
-	if composite, ok := ctx.enclosingNode.(*gopast.CompositeLit); ok {
+	if composite, ok := ctx.enclosingNode.(*xgoast.CompositeLit); ok {
 		for _, elem := range composite.Elts {
-			if kv, ok := elem.(*gopast.KeyValueExpr); ok {
-				if ident, ok := kv.Key.(*gopast.Ident); ok {
+			if kv, ok := elem.(*xgoast.KeyValueExpr); ok {
+				if ident, ok := kv.Key.(*xgoast.Ident); ok {
 					seenFields[ident.Name] = struct{}{}
 				}
 			}
@@ -861,7 +861,7 @@ func (ctx *completionContext) collectStructLit() error {
 
 	// Add unused fields.
 	for field := range ctx.expectedStructType.Fields() {
-		if !goputil.IsExportedOrInMainPkg(field) {
+		if !xgoutil.IsExportedOrInMainPkg(field) {
 			continue
 		}
 		if _, ok := seenFields[field.Name()]; ok {
@@ -902,10 +902,10 @@ func (ctx *completionContext) collectSwitchCase() error {
 	}
 
 	var pkgDoc *pkgdoc.PkgDoc
-	if goputil.IsMainPkg(pkg) {
+	if xgoutil.IsMainPkg(pkg) {
 		pkgDoc = ctx.pkgDoc()
 	} else {
-		pkgPath := goputil.PkgPath(pkg)
+		pkgPath := xgoutil.PkgPath(pkg)
 		pkgDoc, _ = pkgdata.GetPkgDoc(pkgPath)
 	}
 
@@ -1004,7 +1004,7 @@ func (s *completionItemSet) setExpectedTypes(expectedTypes []types.Type) {
 
 	s.isCompatibleWithExpectedTypes = func(typ types.Type) bool {
 		for _, expectedType := range expectedTypes {
-			if expectedType != types.Typ[types.Invalid] && goputil.IsTypesCompatible(typ, expectedType) {
+			if expectedType != types.Typ[types.Invalid] && xgoutil.IsTypesCompatible(typ, expectedType) {
 				return true
 			}
 		}

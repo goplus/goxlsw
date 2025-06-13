@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop/goputil"
-	"github.com/goplus/goxlsw/internal/vfs"
+	xgoast "github.com/goplus/xgo/ast"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/internal/vfs"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#workspace_executeCommand
@@ -133,7 +133,7 @@ func (s *Server) spxGetDefinitions(params []SpxGetDefinitionsParams) ([]SpxDefin
 	if !pos.IsValid() {
 		return nil, nil
 	}
-	innermostScope := goputil.InnermostScopeAt(result.proj, pos)
+	innermostScope := xgoutil.InnermostScopeAt(result.proj, pos)
 	if innermostScope == nil {
 		return nil, nil
 	}
@@ -174,8 +174,8 @@ func (s *Server) spxGetDefinitions(params []SpxGetDefinitionsParams) ([]SpxDefin
 			if !isThis && !isMainScopeObj {
 				continue
 			}
-			named, ok := goputil.DerefType(obj.Type()).(*types.Named)
-			if !ok || !goputil.IsNamedStructType(named) {
+			named, ok := xgoutil.DerefType(obj.Type()).(*types.Named)
+			if !ok || !xgoutil.IsNamedStructType(named) {
 				continue
 			}
 
@@ -227,7 +227,7 @@ func (s *Server) spxGetInputSlots(params []SpxGetInputSlotsParams) ([]SpxInputSl
 }
 
 // findInputSlots finds all input slots in the AST file.
-func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot {
+func findInputSlots(result *compileResult, astFile *xgoast.File) []SpxInputSlot {
 	typeInfo := getTypeInfo(result.proj)
 
 	var inputSlots []SpxInputSlot
@@ -242,21 +242,21 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 		}
 	}
 
-	gopast.Inspect(astFile, func(node gopast.Node) bool {
+	xgoast.Inspect(astFile, func(node xgoast.Node) bool {
 		if node == nil {
 			return true
 		}
 
 		switch node := node.(type) {
-		case *gopast.BranchStmt:
-			if callExpr := goputil.CreateCallExprFromBranchStmt(typeInfo, node); callExpr != nil {
+		case *xgoast.BranchStmt:
+			if callExpr := xgoutil.CreateCallExprFromBranchStmt(typeInfo, node); callExpr != nil {
 				slots := findInputSlotsFromCallExpr(result, callExpr)
 				addInputSlots(slots...)
 			}
-		case *gopast.CallExpr:
+		case *xgoast.CallExpr:
 			slots := findInputSlotsFromCallExpr(result, node)
 			addInputSlots(slots...)
-		case *gopast.BinaryExpr:
+		case *xgoast.BinaryExpr:
 			leftSlot := checkValueInputSlot(result, node.X, nil)
 			if leftSlot != nil {
 				addInputSlots(*leftSlot)
@@ -266,12 +266,12 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 			if rightSlot != nil {
 				addInputSlots(*rightSlot)
 			}
-		case *gopast.UnaryExpr:
+		case *xgoast.UnaryExpr:
 			slot := checkValueInputSlot(result, node.X, nil)
 			if slot != nil {
 				addInputSlots(*slot)
 			}
-		case *gopast.AssignStmt:
+		case *xgoast.AssignStmt:
 			for _, lhs := range node.Lhs {
 				slot := checkAddressInputSlot(result, lhs, nil)
 				if slot != nil {
@@ -290,9 +290,9 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 					addInputSlots(*slot)
 				}
 			}
-		case *gopast.ForStmt:
+		case *xgoast.ForStmt:
 			if node.Init != nil {
-				if expr, ok := node.Init.(*gopast.ExprStmt); ok {
+				if expr, ok := node.Init.(*xgoast.ExprStmt); ok {
 					slot := checkValueInputSlot(result, expr.X, nil)
 					if slot != nil {
 						addInputSlots(*slot)
@@ -308,14 +308,14 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 			}
 
 			if node.Post != nil {
-				if expr, ok := node.Post.(*gopast.ExprStmt); ok {
+				if expr, ok := node.Post.(*xgoast.ExprStmt); ok {
 					slot := checkValueInputSlot(result, expr.X, nil)
 					if slot != nil {
 						addInputSlots(*slot)
 					}
 				}
 			}
-		case *gopast.ValueSpec:
+		case *xgoast.ValueSpec:
 			for i, value := range node.Values {
 				var declaredType types.Type
 				if len(node.Names) == len(node.Values) {
@@ -333,33 +333,33 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 					addInputSlots(*slot)
 				}
 			}
-		case *gopast.ReturnStmt:
+		case *xgoast.ReturnStmt:
 			for _, res := range node.Results {
 				slot := checkValueInputSlot(result, res, nil)
 				if slot != nil {
 					addInputSlots(*slot)
 				}
 			}
-		case *gopast.IfStmt:
+		case *xgoast.IfStmt:
 			slot := checkValueInputSlot(result, node.Cond, types.Typ[types.Bool])
 			if slot != nil {
 				addInputSlots(*slot)
 			}
-		case *gopast.SwitchStmt:
+		case *xgoast.SwitchStmt:
 			if node.Tag != nil {
 				slot := checkValueInputSlot(result, node.Tag, nil)
 				if slot != nil {
 					addInputSlots(*slot)
 				}
 			}
-		case *gopast.CaseClause:
+		case *xgoast.CaseClause:
 			for _, expr := range node.List {
 				slot := checkValueInputSlot(result, expr, nil)
 				if slot != nil {
 					addInputSlots(*slot)
 				}
 			}
-		case *gopast.RangeStmt:
+		case *xgoast.RangeStmt:
 			if node.Key != nil && !isBlank(node.Key) {
 				slot := checkAddressInputSlot(result, node.Key, nil)
 				if slot != nil {
@@ -378,7 +378,7 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 			if slot != nil {
 				addInputSlots(*slot)
 			}
-		case *gopast.IncDecStmt:
+		case *xgoast.IncDecStmt:
 			slot := checkAddressInputSlot(result, node.X, nil)
 			if slot != nil {
 				addInputSlots(*slot)
@@ -391,19 +391,19 @@ func findInputSlots(result *compileResult, astFile *gopast.File) []SpxInputSlot 
 }
 
 // findInputSlotsFromCallExpr finds input slots from a call expression.
-func findInputSlotsFromCallExpr(result *compileResult, callExpr *gopast.CallExpr) []SpxInputSlot {
+func findInputSlotsFromCallExpr(result *compileResult, callExpr *xgoast.CallExpr) []SpxInputSlot {
 	typeInfo := getTypeInfo(result.proj)
 
 	var inputSlots []SpxInputSlot
-	goputil.WalkCallExprArgs(typeInfo, callExpr, func(fun *types.Func, params *types.Tuple, paramIndex int, arg gopast.Expr, argIndex int) bool {
+	xgoutil.WalkCallExprArgs(typeInfo, callExpr, func(fun *types.Func, params *types.Tuple, paramIndex int, arg xgoast.Expr, argIndex int) bool {
 		param := params.At(paramIndex)
 		if !param.Pos().IsValid() {
 			return true
 		}
 
-		declaredType := goputil.DerefType(param.Type())
+		declaredType := xgoutil.DerefType(param.Type())
 		if sliceType, ok := declaredType.(*types.Slice); ok {
-			declaredType = goputil.DerefType(sliceType.Elem())
+			declaredType = xgoutil.DerefType(sliceType.Elem())
 		}
 
 		slot := checkValueInputSlot(result, arg, declaredType)
@@ -416,9 +416,9 @@ func findInputSlotsFromCallExpr(result *compileResult, callExpr *gopast.CallExpr
 }
 
 // collectPredefinedNames collects all predefined names for the given expression.
-func collectPredefinedNames(result *compileResult, expr gopast.Expr, declaredType types.Type) []string {
-	astFile := goputil.NodeASTFile(result.proj, expr)
-	innermostScope := goputil.InnermostScopeAt(result.proj, expr.Pos())
+func collectPredefinedNames(result *compileResult, expr xgoast.Expr, declaredType types.Type) []string {
+	astFile := xgoutil.NodeASTFile(result.proj, expr)
+	innermostScope := xgoutil.InnermostScopeAt(result.proj, expr.Pos())
 
 	var names []string
 	growNames := func(n int) {
@@ -435,7 +435,7 @@ func collectPredefinedNames(result *compileResult, expr gopast.Expr, declaredTyp
 
 			switch {
 			case name == "this",
-				name == "GopPackage",
+				name == xgoutil.XGoPackage,
 				strings.HasPrefix(name, "Gop_"),
 				strings.HasPrefix(name, "__gop_"):
 				return
@@ -454,7 +454,7 @@ func collectPredefinedNames(result *compileResult, expr gopast.Expr, declaredTyp
 				}
 			}
 
-			name = goputil.ToLowerCamelCase(name)
+			name = xgoutil.ToLowerCamelCase(name)
 		default:
 			return
 		}
@@ -481,13 +481,13 @@ func collectPredefinedNames(result *compileResult, expr gopast.Expr, declaredTyp
 			}
 
 			if astFile.IsClass && !obj.Pos().IsValid() && name == "this" {
-				objType := goputil.DerefType(obj.Type())
+				objType := xgoutil.DerefType(obj.Type())
 				named, ok := objType.(*types.Named)
-				if !ok || !goputil.IsNamedStructType(named) {
+				if !ok || !xgoutil.IsNamedStructType(named) {
 					continue
 				}
 
-				goputil.WalkStruct(named, func(member types.Object, selector *types.Named) bool {
+				xgoutil.WalkStruct(named, func(member types.Object, selector *types.Named) bool {
 					switch member := member.(type) {
 					case *types.Var:
 						if !member.Origin().Embedded() {
@@ -528,23 +528,23 @@ func collectPredefinedNames(result *compileResult, expr gopast.Expr, declaredTyp
 }
 
 // checkValueInputSlot checks if the expression is a value input slot.
-func checkValueInputSlot(result *compileResult, expr gopast.Expr, declaredType types.Type) *SpxInputSlot {
+func checkValueInputSlot(result *compileResult, expr xgoast.Expr, declaredType types.Type) *SpxInputSlot {
 	switch expr := expr.(type) {
-	case *gopast.BasicLit:
+	case *xgoast.BasicLit:
 		return createValueInputSlotFromBasicLit(result, expr, declaredType)
-	case *gopast.Ident:
+	case *xgoast.Ident:
 		return createValueInputSlotFromIdent(result, expr, declaredType)
-	case *gopast.UnaryExpr:
+	case *xgoast.UnaryExpr:
 		return createValueInputSlotFromUnaryExpr(result, expr, declaredType)
-	case *gopast.CallExpr:
+	case *xgoast.CallExpr:
 		return createValueInputSlotFromColorFuncCall(result, expr, declaredType)
 	}
 	return nil
 }
 
 // checkAddressInputSlot checks if the expression is an address input slot.
-func checkAddressInputSlot(result *compileResult, expr gopast.Expr, declaredType types.Type) *SpxInputSlot {
-	if ident, ok := expr.(*gopast.Ident); ok {
+func checkAddressInputSlot(result *compileResult, expr xgoast.Expr, declaredType types.Type) *SpxInputSlot {
+	if ident, ok := expr.(*xgoast.Ident); ok {
 		return &SpxInputSlot{
 			Kind:   SpxInputSlotKindAddress,
 			Accept: SpxInputSlotAccept{Type: SpxInputTypeUnknown},
@@ -561,24 +561,24 @@ func checkAddressInputSlot(result *compileResult, expr gopast.Expr, declaredType
 }
 
 // createValueInputSlotFromBasicLit creates a value input slot from a basic literal.
-func createValueInputSlotFromBasicLit(result *compileResult, lit *gopast.BasicLit, declaredType types.Type) *SpxInputSlot {
+func createValueInputSlotFromBasicLit(result *compileResult, lit *xgoast.BasicLit, declaredType types.Type) *SpxInputSlot {
 	input := SpxInput{Kind: SpxInputKindInPlace}
 	switch lit.Kind {
-	case goptoken.INT:
+	case xgotoken.INT:
 		input.Type = SpxInputTypeInteger
 		v, err := strconv.ParseInt(lit.Value, 0, 64)
 		if err != nil {
 			return nil
 		}
 		input.Value = v
-	case goptoken.FLOAT:
+	case xgotoken.FLOAT:
 		input.Type = SpxInputTypeDecimal
 		v, err := strconv.ParseFloat(lit.Value, 64)
 		if err != nil {
 			return nil
 		}
 		input.Value = v
-	case goptoken.STRING:
+	case xgotoken.STRING:
 		input.Type = SpxInputTypeString
 		v, err := strconv.Unquote(lit.Value)
 		if err != nil {
@@ -617,13 +617,13 @@ func createValueInputSlotFromBasicLit(result *compileResult, lit *gopast.BasicLi
 }
 
 // createValueInputSlotFromIdent creates a value input slot from an identifier.
-func createValueInputSlotFromIdent(result *compileResult, ident *gopast.Ident, declaredType types.Type) *SpxInputSlot {
+func createValueInputSlotFromIdent(result *compileResult, ident *xgoast.Ident, declaredType types.Type) *SpxInputSlot {
 	typeInfo := getTypeInfo(result.proj)
 	typ := typeInfo.TypeOf(ident)
 	if typ == nil {
 		return nil
 	}
-	typ = goputil.DerefType(typ)
+	typ = xgoutil.DerefType(typ)
 
 	input := SpxInput{
 		Kind: SpxInputKindPredefined,
@@ -702,19 +702,19 @@ func createValueInputSlotFromIdent(result *compileResult, ident *gopast.Ident, d
 }
 
 // createValueInputSlotFromUnaryExpr creates a value input slot from a unary expression.
-func createValueInputSlotFromUnaryExpr(result *compileResult, expr *gopast.UnaryExpr, declaredType types.Type) *SpxInputSlot {
+func createValueInputSlotFromUnaryExpr(result *compileResult, expr *xgoast.UnaryExpr, declaredType types.Type) *SpxInputSlot {
 	var inputSlot *SpxInputSlot
 	switch x := expr.X.(type) {
-	case *gopast.BasicLit:
+	case *xgoast.BasicLit:
 		inputSlot = createValueInputSlotFromBasicLit(result, x, declaredType)
 		if inputSlot == nil {
 			return nil
 		}
 
 		switch expr.Op {
-		case goptoken.ADD:
+		case xgotoken.ADD:
 			// Nothing to do for unary plus.
-		case goptoken.SUB:
+		case xgotoken.SUB:
 			switch v := inputSlot.Input.Value.(type) {
 			case int64:
 				inputSlot.Input.Value = -v
@@ -723,9 +723,9 @@ func createValueInputSlotFromUnaryExpr(result *compileResult, expr *gopast.Unary
 			default:
 				return nil
 			}
-		case goptoken.XOR:
+		case xgotoken.XOR:
 			switch x.Kind {
-			case goptoken.INT:
+			case xgotoken.INT:
 				switch v := inputSlot.Input.Value.(type) {
 				case int64:
 					inputSlot.Input.Value = ^v
@@ -736,14 +736,14 @@ func createValueInputSlotFromUnaryExpr(result *compileResult, expr *gopast.Unary
 				return nil
 			}
 		}
-	case *gopast.Ident:
+	case *xgoast.Ident:
 		inputSlot = createValueInputSlotFromIdent(result, x, declaredType)
 		if inputSlot == nil {
 			return nil
 		}
 
 		switch expr.Op {
-		case goptoken.NOT:
+		case xgotoken.NOT:
 			switch v := inputSlot.Input.Value.(type) {
 			case bool:
 				inputSlot.Input.Value = !v
@@ -760,10 +760,10 @@ func createValueInputSlotFromUnaryExpr(result *compileResult, expr *gopast.Unary
 
 // createValueInputSlotFromColorFuncCall creates a value input slot from an spx
 // color function call.
-func createValueInputSlotFromColorFuncCall(result *compileResult, callExpr *gopast.CallExpr, declaredType types.Type) *SpxInputSlot {
+func createValueInputSlotFromColorFuncCall(result *compileResult, callExpr *xgoast.CallExpr, declaredType types.Type) *SpxInputSlot {
 	typeInfo := getTypeInfo(result.proj)
 
-	fun := goputil.FuncFromCallExpr(typeInfo, callExpr)
+	fun := xgoutil.FuncFromCallExpr(typeInfo, callExpr)
 	if fun == nil || !IsInSpxPkg(fun) || !isSpxColorFunc(fun) {
 		return nil
 	}
@@ -783,20 +783,20 @@ func createValueInputSlotFromColorFuncCall(result *compileResult, callExpr *gopa
 		if i >= maxArgs {
 			break
 		}
-		lit, ok := argExpr.(*gopast.BasicLit)
+		lit, ok := argExpr.(*xgoast.BasicLit)
 		if !ok {
 			return nil
 		}
 
 		var val float64
 		switch lit.Kind {
-		case goptoken.FLOAT:
+		case xgotoken.FLOAT:
 			floatVal, err := strconv.ParseFloat(lit.Value, 64)
 			if err != nil {
 				return nil
 			}
 			val = floatVal
-		case goptoken.INT:
+		case xgotoken.INT:
 			intVal, err := strconv.ParseInt(lit.Value, 0, 64)
 			if err != nil {
 				return nil
@@ -880,25 +880,25 @@ func inferSpxInputTypeFromType(typ types.Type) SpxInputType {
 
 // inferSpxSpriteResourceEnclosingNode infers the enclosing [SpxSpriteResource]
 // for the given node. It returns nil if no [SpxSpriteResource] can be inferred.
-func inferSpxSpriteResourceEnclosingNode(result *compileResult, node gopast.Node) *SpxSpriteResource {
+func inferSpxSpriteResourceEnclosingNode(result *compileResult, node xgoast.Node) *SpxSpriteResource {
 	typeInfo := getTypeInfo(result.proj)
-	spxFile := goputil.NodeFilename(result.proj, node)
-	astFile := goputil.NodeASTFile(result.proj, node)
+	spxFile := xgoutil.NodeFilename(result.proj, node)
+	astFile := xgoutil.NodeASTFile(result.proj, node)
 
 	var spxSpriteResource *SpxSpriteResource
-	goputil.WalkPathEnclosingInterval(astFile, node.Pos(), node.End(), false, func(node gopast.Node) bool {
+	xgoutil.WalkPathEnclosingInterval(astFile, node.Pos(), node.End(), false, func(node xgoast.Node) bool {
 		if node == nil {
 			return true
 		}
 
-		callExpr, ok := node.(*gopast.CallExpr)
+		callExpr, ok := node.(*xgoast.CallExpr)
 		if !ok {
 			return true
 		}
 
 		var spxSpriteName string
-		if sel, ok := callExpr.Fun.(*gopast.SelectorExpr); ok {
-			ident, ok := sel.X.(*gopast.Ident)
+		if sel, ok := callExpr.Fun.(*xgoast.SelectorExpr); ok {
+			ident, ok := sel.X.(*xgoast.Ident)
 			if !ok {
 				return false
 			}
@@ -926,8 +926,8 @@ func inferSpxSpriteResourceEnclosingNode(result *compileResult, node gopast.Node
 }
 
 // isBlank checks if an expression is a blank identifier (_).
-func isBlank(expr gopast.Expr) bool {
-	ident, ok := expr.(*gopast.Ident)
+func isBlank(expr xgoast.Expr) bool {
+	ident, ok := expr.(*xgoast.Ident)
 	return ok && ident.Name == "_"
 }
 

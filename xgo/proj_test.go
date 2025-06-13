@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gop
+package xgo
 
 import (
 	"io/fs"
@@ -84,8 +84,8 @@ func TestBasic(t *testing.T) {
 
 func TestNewNil(t *testing.T) {
 	proj := NewProject(nil, nil, FeatAll)
-	proj.PutFile("main.gop", file("echo 100"))
-	f, err := proj.AST("main.gop")
+	proj.PutFile("main.xgo", file("echo 100"))
+	f, err := proj.AST("main.xgo")
 	if err != nil || f == nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func TestNewNil(t *testing.T) {
 		t.Fatal("Cache unknown:", e)
 	}
 	proj.RangeFileContents(func(path string, file File) bool {
-		if path != "main.gop" {
+		if path != "main.xgo" {
 			t.Fatal("RangeFileContents:", path)
 		}
 		return true

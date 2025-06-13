@@ -1,4 +1,4 @@
-package goputil
+package xgoutil
 
 import (
 	"go/constant"
@@ -80,83 +80,83 @@ func TestIsNamedStructType(t *testing.T) {
 	})
 }
 
-func TestIsGopClassStructType(t *testing.T) {
+func TestIsXGoClassStructType(t *testing.T) {
 	t.Run("NilNamedType", func(t *testing.T) {
 		var named *types.Named
-		assert.False(t, IsGopClassStructType(named))
+		assert.False(t, IsXGoClassStructType(named))
 	})
 
 	t.Run("NamedTypeWithNilObject", func(t *testing.T) {
 		named := &types.Named{}
-		assert.False(t, IsGopClassStructType(named))
+		assert.False(t, IsXGoClassStructType(named))
 	})
 
-	t.Run("NonGopPackage", func(t *testing.T) {
+	t.Run("NonXGoPackage", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
 		structType := types.NewStruct([]*types.Var{}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "Game", structType)
 		named := types.NewNamed(typeName, structType, nil)
-		assert.False(t, IsGopClassStructType(named))
+		assert.False(t, IsXGoClassStructType(named))
 	})
 
-	t.Run("GopPackageWithNonClassType", func(t *testing.T) {
+	t.Run("XGoPackageWithNonClassType", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
 
-		// Mark package as Go+ package.
+		// Mark package as XGo package.
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(token.NoPos, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		scope.Insert(types.NewConst(token.NoPos, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
 
 		structType := types.NewStruct([]*types.Var{}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "SomeOtherType", structType)
 		named := types.NewNamed(typeName, structType, nil)
-		assert.False(t, IsGopClassStructType(named))
+		assert.False(t, IsXGoClassStructType(named))
 	})
 
 	t.Run("SpxGameType", func(t *testing.T) {
 		pkg := types.NewPackage(spxPkgPath, "spx")
 
-		// Mark package as Go+ package.
+		// Mark package as XGo package.
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(token.NoPos, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		scope.Insert(types.NewConst(token.NoPos, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
 
 		structType := types.NewStruct([]*types.Var{}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "Game", structType)
 		named := types.NewNamed(typeName, structType, nil)
-		assert.True(t, IsGopClassStructType(named))
+		assert.True(t, IsXGoClassStructType(named))
 	})
 
 	t.Run("SpxSpriteImplType", func(t *testing.T) {
 		pkg := types.NewPackage(spxPkgPath, "spx")
 
-		// Mark package as Go+ package.
+		// Mark package as XGo package.
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(token.NoPos, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		scope.Insert(types.NewConst(token.NoPos, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
 
 		structType := types.NewStruct([]*types.Var{}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "SpriteImpl", structType)
 		named := types.NewNamed(typeName, structType, nil)
-		assert.True(t, IsGopClassStructType(named))
+		assert.True(t, IsXGoClassStructType(named))
 	})
 
-	t.Run("SpxGameTypeInNonGopPackage", func(t *testing.T) {
+	t.Run("SpxGameTypeInNonXGoPackage", func(t *testing.T) {
 		pkg := types.NewPackage(spxPkgPath, "spx")
 		structType := types.NewStruct([]*types.Var{}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "Game", structType)
 		named := types.NewNamed(typeName, structType, nil)
-		assert.False(t, IsGopClassStructType(named))
+		assert.False(t, IsXGoClassStructType(named))
 	})
 
-	t.Run("GopPackageWithDifferentSpxType", func(t *testing.T) {
+	t.Run("XGoPackageWithDifferentSpxType", func(t *testing.T) {
 		pkg := types.NewPackage(spxPkgPath, "spx")
 
-		// Mark package as Go+ package.
+		// Mark package as XGo package.
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(token.NoPos, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		scope.Insert(types.NewConst(token.NoPos, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
 
 		structType := types.NewStruct([]*types.Var{}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "Sprite", structType)
 		named := types.NewNamed(typeName, structType, nil)
-		assert.False(t, IsGopClassStructType(named))
+		assert.False(t, IsXGoClassStructType(named))
 	})
 }
 
@@ -387,14 +387,14 @@ func TestWalkStruct(t *testing.T) {
 		assert.Equal(t, types.Typ[types.Int], memberTypes[sameNameIndex])
 	})
 
-	t.Run("GopClassStructSelector", func(t *testing.T) {
+	t.Run("XGoClassStructSelector", func(t *testing.T) {
 		pkg := types.NewPackage(spxPkgPath, "spx")
 
-		// Mark package as Go+ package.
+		// Mark package as XGo package.
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(token.NoPos, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		scope.Insert(types.NewConst(token.NoPos, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
 
-		// Create Go+ class struct.
+		// Create XGo class struct.
 		field := types.NewField(token.NoPos, pkg, "TestField", types.Typ[types.String], false)
 		structType := types.NewStruct([]*types.Var{field}, []string{})
 		typeName := types.NewTypeName(token.NoPos, pkg, "Game", structType)

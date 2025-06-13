@@ -14,7 +14,7 @@ var (
 	MyAircraft MyAircraft
 	Bullet     Bullet
 )
-run "assets", {Title: "Bullet (by Go+)"}
+run "assets", {Title: "Bullet (by XGo)"}
 `),
 		"MyAircraft.spx": []byte(`
 onStart => {
@@ -107,10 +107,10 @@ var (
 
 	t.Run("NonSpxFile", func(t *testing.T) {
 		fileMap := newTestFileMap()
-		fileMap["main.gop"] = []byte(`echo "Hello, Go+!"`)
+		fileMap["main.xgo"] = []byte(`echo "Hello, XGo!"`)
 		s := New(newMapFSWithoutModTime(fileMap), nil, fileMapGetter(fileMap))
 		params := &DocumentDiagnosticParams{
-			TextDocument: TextDocumentIdentifier{URI: "file:///main.gop"},
+			TextDocument: TextDocumentIdentifier{URI: "file:///main.xgo"},
 		}
 
 		report, err := s.textDocumentDiagnostic(params)

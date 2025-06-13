@@ -5,9 +5,9 @@ import (
 	"go/types"
 	"slices"
 
-	gopast "github.com/goplus/gop/ast"
-	"github.com/goplus/goxlsw/gop/goputil"
-	"github.com/goplus/goxlsw/internal/vfs"
+	xgoast "github.com/goplus/xgo/ast"
+	"github.com/goplus/xgolsw/internal/vfs"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_prepareRename
@@ -27,17 +27,17 @@ func (s *Server) textDocumentPrepareRename(params *PrepareRenameParams) (*Range,
 	}
 	position := ToPosition(proj, astFile, params.Position)
 
-	ident := goputil.IdentAtPosition(proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(proj, astFile, position)
 	if ident == nil {
 		return nil, nil
 	}
 	typeInfo := getTypeInfo(proj)
 	obj := typeInfo.ObjectOf(ident)
-	if !goputil.IsRenameable(obj) {
+	if !xgoutil.IsRenameable(obj) {
 		return nil, nil
 	}
-	defIdent := goputil.DefIdentFor(typeInfo, obj)
-	if defIdent == nil || goputil.NodeTokenFile(proj, defIdent) == nil {
+	defIdent := xgoutil.DefIdentFor(typeInfo, obj)
+	if defIdent == nil || xgoutil.NodeTokenFile(proj, defIdent) == nil {
 		return nil, nil
 	}
 
@@ -64,14 +64,14 @@ func (s *Server) textDocumentRename(params *RenameParams) (*WorkspaceEdit, error
 		}})
 	}
 
-	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(result.proj, astFile, position)
 	typeInfo := getTypeInfo(result.proj)
 	obj := typeInfo.ObjectOf(ident)
-	if !goputil.IsRenameable(obj) {
+	if !xgoutil.IsRenameable(obj) {
 		return nil, nil
 	}
-	defIdent := goputil.DefIdentFor(typeInfo, obj)
-	if defIdent == nil || goputil.NodeTokenFile(result.proj, defIdent) == nil {
+	defIdent := xgoutil.DefIdentFor(typeInfo, obj)
+	if defIdent == nil || xgoutil.NodeTokenFile(result.proj, defIdent) == nil {
 		return nil, fmt.Errorf("failed to find definition of object %q", obj.Name())
 	}
 
@@ -111,13 +111,13 @@ func (s *Server) spxRenameResourceAtRefs(result *compileResult, id SpxResourceID
 		nodePos := fset.Position(ref.Node.Pos())
 		nodeEnd := fset.Position(ref.Node.End())
 
-		if expr, ok := ref.Node.(gopast.Expr); ok && types.AssignableTo(typeInfo.TypeOf(expr), types.Typ[types.String]) {
-			if ident, ok := expr.(*gopast.Ident); ok {
+		if expr, ok := ref.Node.(xgoast.Expr); ok && types.AssignableTo(typeInfo.TypeOf(expr), types.Typ[types.String]) {
+			if ident, ok := expr.(*xgoast.Ident); ok {
 				// It has to be a constant. So we must find its declaration site and
 				// use the position of its value instead.
-				defIdent := goputil.DefIdentFor(typeInfo, typeInfo.ObjectOf(ident))
-				if defIdent != nil && goputil.NodeTokenFile(result.proj, defIdent) != nil {
-					parent, ok := defIdent.Obj.Decl.(*gopast.ValueSpec)
+				defIdent := xgoutil.DefIdentFor(typeInfo, typeInfo.ObjectOf(ident))
+				if defIdent != nil && xgoutil.NodeTokenFile(result.proj, defIdent) != nil {
+					parent, ok := defIdent.Obj.Decl.(*xgoast.ValueSpec)
 					if ok && slices.Contains(parent.Names, defIdent) && len(parent.Values) > 0 {
 						nodePos = fset.Position(parent.Values[0].Pos())
 						nodeEnd = fset.Position(parent.Values[0].End())
@@ -132,7 +132,7 @@ func (s *Server) spxRenameResourceAtRefs(result *compileResult, id SpxResourceID
 			nodeEnd.Column--
 		}
 
-		astFile := goputil.NodeASTFile(result.proj, ref.Node)
+		astFile := xgoutil.NodeASTFile(result.proj, ref.Node)
 		textEdit := TextEdit{
 			Range: Range{
 				Start: FromPosition(result.proj, astFile, nodePos),

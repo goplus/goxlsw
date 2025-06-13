@@ -4,13 +4,13 @@ import (
 	"go/types"
 	"testing"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/parser"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
-	"github.com/goplus/goxlsw/internal/analysis/ast/inspector"
-	"github.com/goplus/goxlsw/internal/analysis/passes/inspect"
-	"github.com/goplus/goxlsw/internal/analysis/protocol"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/parser"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
+	"github.com/goplus/xgolsw/internal/analysis/ast/inspector"
+	"github.com/goplus/xgolsw/internal/analysis/passes/inspect"
+	"github.com/goplus/xgolsw/internal/analysis/protocol"
 )
 
 func TestAppends(t *testing.T) {
@@ -41,7 +41,7 @@ _ = append(s, 1)
 		t.Run(tt.name, func(t *testing.T) {
 			// Create file set and parse source
 			fset := token.NewFileSet()
-			f, err := parser.ParseFile(fset, "test.gop", tt.src, parser.ParseComments)
+			f, err := parser.ParseFile(fset, "test.xgo", tt.src, parser.ParseComments)
 			if err != nil {
 				t.Fatal(err)
 			}

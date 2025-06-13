@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package goputil
+package xgoutil
 
 // This file defines utilities for working with source positions.
 
 import (
 	"sort"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
 )
 
 // PathEnclosingInterval returns the node that encloses the source
@@ -319,7 +319,7 @@ func childrenOf(n ast.Node) []ast.Node {
 		// here and order things correctly.
 		//
 		children = nil // discard ast.Walk(FuncDecl) info subtrees
-		if n.Shadow {  // goxls: Go+ shadow func
+		if n.Shadow {  // goxls: XGo shadow func
 			for _, v := range n.Body.List {
 				children = append(children, v)
 			}

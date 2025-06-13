@@ -1,4 +1,4 @@
-package goputil
+package xgoutil
 
 import (
 	"go/token"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/constant"
 	"go/types"
 )
 
-// GopPackage indicates a Go+ package.
-const GopPackage = "GopPackage"
+// XGoPackage indicates an XGo package.
+const XGoPackage = "GopPackage"
 
-// IsMarkedAsGopPackage reports whether the given package is marked as a Go+ package.
-func IsMarkedAsGopPackage(pkg *types.Package) bool {
+// IsMarkedAsXGoPackage reports whether the given package is marked as an XGo package.
+func IsMarkedAsXGoPackage(pkg *types.Package) bool {
 	if pkg == nil {
 		return false
 	}
@@ -33,7 +33,7 @@ func IsMarkedAsGopPackage(pkg *types.Package) bool {
 	if scope == nil {
 		return false
 	}
-	obj := scope.Lookup(GopPackage)
+	obj := scope.Lookup(XGoPackage)
 	if obj == nil {
 		return false
 	}
@@ -56,7 +56,7 @@ func PkgPath(pkg *types.Package) string {
 	}
 	pkgPath := pkg.Path()
 	if pkgPath == "" {
-		// Builtin objects do not belong to any package. But in the type system of Go+,
+		// Builtin objects do not belong to any package. But in the type system of XGo,
 		// they may have non-nil package with an empty path, e.g., append.
 		return "builtin"
 	}

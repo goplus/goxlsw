@@ -118,7 +118,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:main?Game.count\" overview=\"var count int\">\ncount is a variable.\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:main?Game.count\" overview=\"var count int\">\ncount is a variable.\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 11, Character: 1},
@@ -137,7 +137,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:main?MaxCount\" overview=\"const MaxCount = 100\">\nMaxCount is a constant.\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:main?MaxCount\" overview=\"const MaxCount = 100\">\nMaxCount is a constant.\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 17, Character: 6},
@@ -156,7 +156,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:main?Game.Add\" overview=\"func Add(x int, y int) int\">\nAdd is a function.\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:main?Game.Add\" overview=\"func Add(x int, y int) int\">\nAdd is a function.\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 20, Character: 5},
@@ -175,7 +175,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:main?Point\" overview=\"type Point\">\nPoint is a type.\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:main?Point\" overview=\"type Point\">\nPoint is a type.\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 25, Character: 5},
@@ -194,7 +194,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:main?Point.X\" overview=\"field X int\">\nX is a field.\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:main?Point.X\" overview=\"field X int\">\nX is a field.\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 27, Character: 1},
@@ -239,7 +239,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:builtin?int8\" overview=\"type int8\">\nint8 is the set of all signed 8-bit integers.\nRange: -128 through 127.\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:builtin?int8\" overview=\"type int8\">\nint8 is the set of all signed 8-bit integers.\nRange: -128 through 127.\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 33, Character: 12},
@@ -328,7 +328,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:github.com/goplus/spx/v2?Game.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:github.com/goplus/spx/v2?Game.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 38, Character: 5},
@@ -347,7 +347,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:github.com/goplus/spx/v2?Game.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:github.com/goplus/spx/v2?Game.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 39, Character: 0},
@@ -363,7 +363,7 @@ onTouchStart "MySprite", => {}
 		})
 		require.NoError(t, err)
 		require.NotNil(t, mainSpxOnHover)
-		assert.Contains(t, mainSpxOnHover.Contents.Value, `def-id="gop:github.com/goplus/spx/v2?Game.on#2"`)
+		assert.Contains(t, mainSpxOnHover.Contents.Value, `def-id="xgo:github.com/goplus/spx/v2?Game.on#2"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 40, Character: 0},
 			End:   Position{Line: 40, Character: 2},
@@ -380,7 +380,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:github.com/goplus/spx/v2?Sprite.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:github.com/goplus/spx/v2?Sprite.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 1, Character: 9},
@@ -399,7 +399,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:github.com/goplus/spx/v2?Sprite.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:github.com/goplus/spx/v2?Sprite.onClick\" overview=\"func onClick(onClick func())\">\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 2, Character: 0},
@@ -418,7 +418,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:github.com/goplus/spx/v2?Sprite.clone#0\" overview=\"func clone()\">\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:github.com/goplus/spx/v2?Sprite.clone#0\" overview=\"func clone()\">\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 5, Character: 1},
@@ -437,7 +437,7 @@ onTouchStart "MySprite", => {}
 		assert.Equal(t, &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
-				Value: "<definition-item def-id=\"gop:image?Point.X\" overview=\"field X int\">\n</definition-item>\n",
+				Value: "<definition-item def-id=\"xgo:image?Point.X\" overview=\"field X int\">\n</definition-item>\n",
 			},
 			Range: Range{
 				Start: Position{Line: 6, Character: 12},
@@ -479,7 +479,7 @@ onTouchStart "MySprite", => {}
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover)
-		assert.Contains(t, hover.Contents.Value, `def-id="gop:builtin?int"`)
+		assert.Contains(t, hover.Contents.Value, `def-id="xgo:builtin?int"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 0, Character: 6},
 			End:   Position{Line: 0, Character: 9},
@@ -536,14 +536,14 @@ nums = append(nums, 1)
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover)
-		assert.Contains(t, hover.Contents.Value, `def-id="gop:builtin?append"`)
+		assert.Contains(t, hover.Contents.Value, `def-id="xgo:builtin?append"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 2, Character: 7},
 			End:   Position{Line: 2, Character: 13},
 		}, hover.Range)
 	})
 
-	t.Run("WithGopBuiltins", func(t *testing.T) {
+	t.Run("WithXGoBuiltins", func(t *testing.T) {
 		m := map[string][]byte{
 			"main.spx": []byte(`
 var num int128
@@ -560,7 +560,7 @@ echo num
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover1)
-		assert.Contains(t, hover1.Contents.Value, `def-id="gop:builtin?int128"`)
+		assert.Contains(t, hover1.Contents.Value, `def-id="xgo:builtin?int128"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 1, Character: 8},
 			End:   Position{Line: 1, Character: 14},
@@ -574,7 +574,7 @@ echo num
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover2)
-		assert.Contains(t, hover2.Contents.Value, `def-id="gop:fmt?println"`)
+		assert.Contains(t, hover2.Contents.Value, `def-id="xgo:fmt?println"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 2, Character: 0},
 			End:   Position{Line: 2, Character: 4},
@@ -601,7 +601,7 @@ onStart => {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover1)
-		assert.Contains(t, hover1.Contents.Value, `def-id="gop:main?%E4%B8%AD%E6%96%87"`)
+		assert.Contains(t, hover1.Contents.Value, `def-id="xgo:main?%E4%B8%AD%E6%96%87"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 3, Character: 13},
 			End:   Position{Line: 3, Character: 15},
@@ -624,7 +624,7 @@ onStart => {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover3)
-		assert.Contains(t, hover3.Contents.Value, `def-id="gop:main?%E4%B8%AD%E6%96%87"`)
+		assert.Contains(t, hover3.Contents.Value, `def-id="xgo:main?%E4%B8%AD%E6%96%87"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 4, Character: 16},
 			End:   Position{Line: 4, Character: 18},
@@ -649,7 +649,7 @@ onStart => {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover)
-		assert.Contains(t, hover.Contents.Value, `def-id="gop:fmt?println"`)
+		assert.Contains(t, hover.Contents.Value, `def-id="xgo:fmt?println"`)
 		assert.Contains(t, hover.Contents.Value, `overview="func println(a ...any) (n int, err error)"`)
 		assert.Equal(t, Range{
 			Start: Position{Line: 2, Character: 1},
@@ -657,7 +657,7 @@ onStart => {
 		}, hover.Range)
 	})
 
-	t.Run("GoptMethodCall", func(t *testing.T) {
+	t.Run("XGotMethodCall", func(t *testing.T) {
 		m := map[string][]byte{
 			"main.spx": []byte(`
 onStart => {
@@ -676,7 +676,7 @@ onStart => {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, hover)
-		assert.Contains(t, hover.Contents.Value, `def-id="gop:github.com/goplus/spx/v2?Game.getWidget"`)
+		assert.Contains(t, hover.Contents.Value, `def-id="xgo:github.com/goplus/spx/v2?Game.getWidget"`)
 		assert.Contains(t, hover.Contents.Value, `overview="func getWidget(T Type, name WidgetName) *T"`)
 		assert.Contains(t, hover.Contents.Value, `GetWidget returns the widget instance (in given type) with given name. It panics if not found.`)
 		assert.Equal(t, Range{

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"testing"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInnermostScopeAt(t *testing.T) {
-	proj := gop.NewProject(nil, map[string]gop.File{
-		"main.gop": file(`
+	proj := xgo.NewProject(nil, map[string]xgo.File{
+		"main.xgo": file(`
 var x = 1
 
 func test() {
@@ -39,12 +39,12 @@ func test() {
 	}
 }
 `),
-	}, gop.FeatAll)
+	}, xgo.FeatAll)
 
 	_, typeInfo, _, _ := proj.TypeInfo()
 	require.NotNil(t, typeInfo)
 
-	astFile, err := proj.AST("main.gop")
+	astFile, err := proj.AST("main.xgo")
 	require.NoError(t, err)
 	require.Len(t, astFile.Decls, 2)
 	astFileScope := typeInfo.Scopes[astFile]

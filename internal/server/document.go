@@ -4,8 +4,8 @@ import (
 	"cmp"
 	"slices"
 
-	gopast "github.com/goplus/gop/ast"
-	"github.com/goplus/goxlsw/gop/goputil"
+	xgoast "github.com/goplus/xgo/ast"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification#textDocument_documentLink
@@ -30,7 +30,7 @@ func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) (links []D
 	// Add links for spx resource references.
 	links = slices.Grow(links, len(result.spxResourceRefs))
 	for _, spxResourceRef := range result.spxResourceRefs {
-		if goputil.NodeFilename(result.proj, spxResourceRef.Node) != spxFile {
+		if xgoutil.NodeFilename(result.proj, spxResourceRef.Node) != spxFile {
 			continue
 		}
 		target := URI(spxResourceRef.ID.URI())
@@ -46,8 +46,8 @@ func (s *Server) textDocumentDocumentLink(params *DocumentLinkParams) (links []D
 	// Add links for spx definitions.
 	typeInfo := getTypeInfo(result.proj)
 	links = slices.Grow(links, len(typeInfo.Defs)+len(typeInfo.Uses))
-	addLinksForIdent := func(ident *gopast.Ident) {
-		if goputil.NodeFilename(result.proj, ident) != spxFile {
+	addLinksForIdent := func(ident *xgoast.Ident) {
+		if xgoutil.NodeFilename(result.proj, ident) != spxFile {
 			return
 		}
 		if spxDefs := result.spxDefinitionsForIdent(ident); spxDefs != nil {

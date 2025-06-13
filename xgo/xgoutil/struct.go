@@ -1,4 +1,4 @@
-package goputil
+package xgoutil
 
 import "go/types"
 
@@ -11,8 +11,8 @@ func IsNamedStructType(named *types.Named) bool {
 	return ok
 }
 
-// IsGopClassStructType reports whether the given named type is a Go+ class struct type.
-func IsGopClassStructType(named *types.Named) bool {
+// IsXGoClassStructType reports whether the given named type is an XGo class struct type.
+func IsXGoClassStructType(named *types.Named) bool {
 	if named == nil {
 		return false
 	}
@@ -21,12 +21,12 @@ func IsGopClassStructType(named *types.Named) bool {
 		return false
 	}
 	pkg := obj.Pkg()
-	if !IsMarkedAsGopPackage(pkg) {
+	if !IsMarkedAsXGoPackage(pkg) {
 		return false
 	}
 
-	// FIXME: This is a workaround for the fact that Go+ does not have the ability to
-	// recognize Go+ class struct types.
+	// FIXME: This is a workaround for the fact that XGo does not have the ability to
+	// recognize XGo class struct types.
 	switch PkgPath(pkg) + "." + obj.Name() {
 	case "github.com/goplus/spx/v2.Game",
 		"github.com/goplus/spx/v2.SpriteImpl":
@@ -62,7 +62,7 @@ func WalkStruct(named *types.Named, onMember func(member types.Object, selector 
 				break
 			}
 			selector = named
-			if IsGopClassStructType(selector) {
+			if IsXGoClassStructType(selector) {
 				break
 			}
 		}

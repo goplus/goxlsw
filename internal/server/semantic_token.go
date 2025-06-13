@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop/goputil"
+	xgoast "github.com/goplus/xgo/ast"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 var (
@@ -64,8 +64,8 @@ func getSemanticTokenModifiersMask(modifiers []SemanticTokenModifiers) uint32 {
 
 // semanticTokenInfo represents the information of a semantic token.
 type semanticTokenInfo struct {
-	startPos       goptoken.Pos
-	endPos         goptoken.Pos
+	startPos       xgotoken.Pos
+	endPos         xgotoken.Pos
 	tokenType      SemanticTokenTypes
 	tokenModifiers []SemanticTokenModifiers
 }
@@ -94,7 +94,7 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 	var fset = result.proj.Fset
 	var typeInfo = getTypeInfo(result.proj)
 	var tokenInfos []semanticTokenInfo
-	addToken := func(startPos, endPos goptoken.Pos, tokenType SemanticTokenTypes, tokenModifiers []SemanticTokenModifiers) {
+	addToken := func(startPos, endPos xgotoken.Pos, tokenType SemanticTokenTypes, tokenModifiers []SemanticTokenModifiers) {
 		if !startPos.IsValid() || !endPos.IsValid() {
 			return
 		}
@@ -113,26 +113,26 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 		})
 	}
 
-	gopast.Inspect(astFile, func(node gopast.Node) bool {
+	xgoast.Inspect(astFile, func(node xgoast.Node) bool {
 		if node == nil || !node.Pos().IsValid() {
 			return true
 		}
 
 		switch node := node.(type) {
-		case *gopast.Comment:
+		case *xgoast.Comment:
 			addToken(node.Pos(), node.End(), CommentType, nil)
-		case *gopast.BadExpr:
+		case *xgoast.BadExpr:
 			addToken(node.From, node.To, OperatorType, nil)
-		case *gopast.BadStmt:
+		case *xgoast.BadStmt:
 			addToken(node.From, node.To, OperatorType, nil)
-		case *gopast.EmptyStmt:
+		case *xgoast.EmptyStmt:
 			if !node.Implicit {
 				addToken(node.Semicolon, node.Semicolon+1, OperatorType, nil)
 			}
-		case *gopast.Ident:
+		case *xgoast.Ident:
 			obj := typeInfo.ObjectOf(node)
 			if obj == nil {
-				if goptoken.Lookup(node.Name).IsKeyword() {
+				if xgotoken.Lookup(node.Name).IsKeyword() {
 					addToken(node.Pos(), node.End(), KeywordType, nil)
 				}
 				return true
@@ -161,13 +161,13 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 				}
 			case *types.Var:
 				if obj.IsField() {
-					if goputil.IsInMainPkg(obj) && goputil.IsDefinedInClassFieldsDecl(result.proj, obj) {
+					if xgoutil.IsInMainPkg(obj) && xgoutil.IsDefinedInClassFieldsDecl(result.proj, obj) {
 						tokenType = VariableType
 					} else {
 						tokenType = PropertyType
 					}
 				} else if obj.Parent() != nil && obj.Parent().Parent() == nil {
-					defIdent := goputil.DefIdentFor(typeInfo, obj)
+					defIdent := xgoutil.DefIdentFor(typeInfo, obj)
 					if defIdent == node {
 						tokenType = ParameterType
 					} else {
@@ -190,134 +190,134 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 			case *types.Label:
 				tokenType = LabelType
 			}
-			if goputil.DefIdentFor(typeInfo, obj) == node {
+			if xgoutil.DefIdentFor(typeInfo, obj) == node {
 				modifiers = append(modifiers, ModDeclaration)
 			}
-			if obj.Pkg() != nil && !goputil.IsInMainPkg(obj) && !strings.Contains(goputil.PkgPath(obj.Pkg()), ".") {
+			if obj.Pkg() != nil && !xgoutil.IsInMainPkg(obj) && !strings.Contains(xgoutil.PkgPath(obj.Pkg()), ".") {
 				modifiers = append(modifiers, ModDefaultLibrary)
 			}
 			addToken(node.Pos(), node.End(), tokenType, modifiers)
-		case *gopast.BasicLit:
+		case *xgoast.BasicLit:
 			var tokenType SemanticTokenTypes
 			switch node.Kind {
-			case goptoken.STRING, goptoken.CHAR, goptoken.CSTRING:
+			case xgotoken.STRING, xgotoken.CHAR, xgotoken.CSTRING:
 				tokenType = StringType
-			case goptoken.INT, goptoken.FLOAT, goptoken.IMAG, goptoken.RAT:
+			case xgotoken.INT, xgotoken.FLOAT, xgotoken.IMAG, xgotoken.RAT:
 				tokenType = NumberType
 			}
-			addToken(node.ValuePos, node.ValuePos+goptoken.Pos(len(node.Value)), tokenType, nil)
+			addToken(node.ValuePos, node.ValuePos+xgotoken.Pos(len(node.Value)), tokenType, nil)
 
 			if node.Extra != nil && len(node.Extra.Parts) > 0 {
 				pos := node.ValuePos
 				for _, part := range node.Extra.Parts {
 					switch v := part.(type) {
 					case string:
-						nextPos := gopast.NextPartPos(pos, v)
+						nextPos := xgoast.NextPartPos(pos, v)
 						addToken(pos, nextPos, StringType, nil)
 						pos = nextPos
-					case gopast.Expr:
+					case xgoast.Expr:
 						pos = v.End()
 					}
 				}
 			}
-		case *gopast.CompositeLit:
+		case *xgoast.CompositeLit:
 			addToken(node.Lbrace, node.Lbrace+1, OperatorType, nil)
 			addToken(node.Rbrace, node.Rbrace+1, OperatorType, nil)
-		case *gopast.FuncLit:
-			addToken(node.Type.Func, node.Type.Func+goptoken.Pos(len("func")), KeywordType, nil)
-		case *gopast.SliceLit:
+		case *xgoast.FuncLit:
+			addToken(node.Type.Func, node.Type.Func+xgotoken.Pos(len("func")), KeywordType, nil)
+		case *xgoast.SliceLit:
 			addToken(node.Lbrack, node.Lbrack+1, OperatorType, nil)
 			addToken(node.Rbrack, node.Rbrack+1, OperatorType, nil)
-		case *gopast.MatrixLit:
+		case *xgoast.MatrixLit:
 			addToken(node.Lbrack, node.Lbrack+1, OperatorType, nil)
 			addToken(node.Rbrack, node.Rbrack+1, OperatorType, nil)
-		case *gopast.StarExpr:
+		case *xgoast.StarExpr:
 			addToken(node.Star, node.Star+1, OperatorType, nil)
-		case *gopast.UnaryExpr:
+		case *xgoast.UnaryExpr:
 			opLen := len(node.Op.String())
-			addToken(node.OpPos, node.OpPos+goptoken.Pos(opLen), OperatorType, nil)
-		case *gopast.BinaryExpr:
+			addToken(node.OpPos, node.OpPos+xgotoken.Pos(opLen), OperatorType, nil)
+		case *xgoast.BinaryExpr:
 			opLen := len(node.Op.String())
-			addToken(node.OpPos, node.OpPos+goptoken.Pos(opLen), OperatorType, nil)
-		case *gopast.ParenExpr:
+			addToken(node.OpPos, node.OpPos+xgotoken.Pos(opLen), OperatorType, nil)
+		case *xgoast.ParenExpr:
 			addToken(node.Lparen, node.Lparen+1, OperatorType, nil)
 			addToken(node.Rparen, node.Rparen+1, OperatorType, nil)
-		case *gopast.SelectorExpr:
+		case *xgoast.SelectorExpr:
 			addToken(node.Sel.Pos()-1, node.Sel.Pos(), OperatorType, nil)
-		case *gopast.IndexExpr:
+		case *xgoast.IndexExpr:
 			addToken(node.Lbrack, node.Lbrack+1, OperatorType, nil)
 			addToken(node.Rbrack, node.Rbrack+1, OperatorType, nil)
-		case *gopast.IndexListExpr:
+		case *xgoast.IndexListExpr:
 			addToken(node.Lbrack, node.Lbrack+1, OperatorType, nil)
 			addToken(node.Rbrack, node.Rbrack+1, OperatorType, nil)
-		case *gopast.SliceExpr:
+		case *xgoast.SliceExpr:
 			addToken(node.Lbrack, node.Lbrack+1, OperatorType, nil)
 			addToken(node.Rbrack, node.Rbrack+1, OperatorType, nil)
-		case *gopast.TypeAssertExpr:
+		case *xgoast.TypeAssertExpr:
 			addToken(node.Lparen-1, node.Lparen, OperatorType, nil)
 			addToken(node.Lparen, node.Lparen+1, OperatorType, nil)
 			if node.Type == nil {
-				addToken(node.Lparen+1, node.Lparen+1+goptoken.Pos(len("type")), KeywordType, nil)
+				addToken(node.Lparen+1, node.Lparen+1+xgotoken.Pos(len("type")), KeywordType, nil)
 			}
 			addToken(node.Rparen, node.Rparen+1, OperatorType, nil)
-		case *gopast.CallExpr:
+		case *xgoast.CallExpr:
 			addToken(node.Lparen, node.Lparen+1, OperatorType, nil)
 			addToken(node.Rparen, node.Rparen+1, OperatorType, nil)
 			if node.Ellipsis.IsValid() {
 				addToken(node.Ellipsis, node.Ellipsis+3, OperatorType, nil)
 			}
-		case *gopast.KeyValueExpr:
+		case *xgoast.KeyValueExpr:
 			addToken(node.Colon, node.Colon+1, OperatorType, nil)
-		case *gopast.ErrWrapExpr:
+		case *xgoast.ErrWrapExpr:
 			addToken(node.TokPos, node.TokPos+1, OperatorType, nil)
 			if node.Default != nil {
 				addToken(node.TokPos+1, node.TokPos+2, OperatorType, nil)
 			}
-		case *gopast.EnvExpr:
+		case *xgoast.EnvExpr:
 			addToken(node.TokPos, node.TokPos+1, OperatorType, nil)
 			if node.HasBrace() {
 				addToken(node.Lbrace, node.Lbrace+1, OperatorType, nil)
 				addToken(node.Rbrace, node.Rbrace+1, OperatorType, nil)
 			}
-		case *gopast.RangeExpr:
+		case *xgoast.RangeExpr:
 			addToken(node.To, node.To+1, OperatorType, nil)
 			if node.Colon2.IsValid() {
 				addToken(node.Colon2, node.Colon2+1, OperatorType, nil)
 			}
-		case *gopast.ArrayType:
+		case *xgoast.ArrayType:
 			addToken(node.Lbrack, node.Lbrack+1, OperatorType, nil)
 			if node.Len == nil {
 				addToken(node.Lbrack+1, node.Lbrack+2, OperatorType, nil)
 			}
-		case *gopast.StructType:
-			addToken(node.Struct, node.Struct+goptoken.Pos(len("struct")), KeywordType, nil)
-		case *gopast.InterfaceType:
-			addToken(node.Interface, node.Interface+goptoken.Pos(len("interface")), KeywordType, nil)
-		case *gopast.FuncType:
+		case *xgoast.StructType:
+			addToken(node.Struct, node.Struct+xgotoken.Pos(len("struct")), KeywordType, nil)
+		case *xgoast.InterfaceType:
+			addToken(node.Interface, node.Interface+xgotoken.Pos(len("interface")), KeywordType, nil)
+		case *xgoast.FuncType:
 			if node.Func.IsValid() {
-				addToken(node.Func, node.Func+goptoken.Pos(len("func")), KeywordType, nil)
+				addToken(node.Func, node.Func+xgotoken.Pos(len("func")), KeywordType, nil)
 			}
 			if node.TypeParams != nil {
 				addToken(node.TypeParams.Opening, node.TypeParams.Opening+1, OperatorType, nil)
 				addToken(node.TypeParams.Closing, node.TypeParams.Closing+1, OperatorType, nil)
 			}
-		case *gopast.MapType:
-			addToken(node.Map, node.Map+goptoken.Pos(len("map")), KeywordType, nil)
-		case *gopast.ChanType:
-			addToken(node.Begin, node.Begin+goptoken.Pos(len("chan")), KeywordType, nil)
+		case *xgoast.MapType:
+			addToken(node.Map, node.Map+xgotoken.Pos(len("map")), KeywordType, nil)
+		case *xgoast.ChanType:
+			addToken(node.Begin, node.Begin+xgotoken.Pos(len("chan")), KeywordType, nil)
 			if node.Arrow.IsValid() {
 				addToken(node.Arrow, node.Arrow+2, OperatorType, nil)
 			}
-		case *gopast.GenDecl:
+		case *xgoast.GenDecl:
 			switch node.Tok {
-			case goptoken.IMPORT:
-				addToken(node.TokPos, node.TokPos+goptoken.Pos(len("import")), KeywordType, nil)
-			case goptoken.CONST:
-				addToken(node.TokPos, node.TokPos+goptoken.Pos(len("const")), KeywordType, nil)
-			case goptoken.TYPE:
-				addToken(node.TokPos, node.TokPos+goptoken.Pos(len("type")), KeywordType, nil)
-			case goptoken.VAR:
-				addToken(node.TokPos, node.TokPos+goptoken.Pos(len("var")), KeywordType, nil)
+			case xgotoken.IMPORT:
+				addToken(node.TokPos, node.TokPos+xgotoken.Pos(len("import")), KeywordType, nil)
+			case xgotoken.CONST:
+				addToken(node.TokPos, node.TokPos+xgotoken.Pos(len("const")), KeywordType, nil)
+			case xgotoken.TYPE:
+				addToken(node.TokPos, node.TokPos+xgotoken.Pos(len("type")), KeywordType, nil)
+			case xgotoken.VAR:
+				addToken(node.TokPos, node.TokPos+xgotoken.Pos(len("var")), KeywordType, nil)
 			}
 			if node.Lparen.IsValid() {
 				addToken(node.Lparen, node.Lparen+1, OperatorType, nil)
@@ -325,12 +325,12 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 			if node.Rparen.IsValid() {
 				addToken(node.Rparen, node.Rparen+1, OperatorType, nil)
 			}
-		case *gopast.FuncDecl:
+		case *xgoast.FuncDecl:
 			if node.Shadow {
 				return true
 			}
 
-			addToken(node.Type.Func, node.Type.Func+goptoken.Pos(len("func")), KeywordType, nil)
+			addToken(node.Type.Func, node.Type.Func+xgotoken.Pos(len("func")), KeywordType, nil)
 			if node.Recv != nil {
 				addToken(node.Recv.Opening, node.Recv.Opening+1, OperatorType, nil)
 				addToken(node.Recv.Closing, node.Recv.Closing+1, OperatorType, nil)
@@ -338,8 +338,8 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 			if node.Operator {
 				addToken(node.Name.Pos(), node.Name.End(), OperatorType, []SemanticTokenModifiers{ModDeclaration})
 			}
-		case *gopast.OverloadFuncDecl:
-			addToken(node.Func, node.Func+goptoken.Pos(len("func")), KeywordType, nil)
+		case *xgoast.OverloadFuncDecl:
+			addToken(node.Func, node.Func+xgotoken.Pos(len("func")), KeywordType, nil)
 			if node.Recv != nil {
 				addToken(node.Recv.Opening, node.Recv.Opening+1, OperatorType, nil)
 				addToken(node.Recv.Closing, node.Recv.Closing+1, OperatorType, nil)
@@ -358,75 +358,75 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 			addToken(node.Assign, node.Assign+1, OperatorType, nil)
 			addToken(node.Lparen, node.Lparen+1, OperatorType, nil)
 			addToken(node.Rparen, node.Rparen+1, OperatorType, nil)
-		case *gopast.ImportSpec:
+		case *xgoast.ImportSpec:
 			if node.Path != nil {
 				addToken(node.Path.Pos(), node.Path.End(), StringType, nil)
 			}
-		case *gopast.ValueSpec:
+		case *xgoast.ValueSpec:
 			if node.Type != nil {
 				addToken(node.Type.Pos(), node.Type.End(), TypeType, nil)
 			}
-		case *gopast.FieldList:
+		case *xgoast.FieldList:
 			if node.Opening.IsValid() {
 				addToken(node.Opening, node.Opening+1, OperatorType, nil)
 			}
 			if node.Closing.IsValid() {
 				addToken(node.Closing, node.Closing+1, OperatorType, nil)
 			}
-		case *gopast.LabeledStmt:
+		case *xgoast.LabeledStmt:
 			addToken(node.Label.Pos(), node.Label.End(), LabelType, nil)
 			addToken(node.Colon, node.Colon+1, OperatorType, nil)
-		case *gopast.SendStmt:
+		case *xgoast.SendStmt:
 			addToken(node.Arrow, node.Arrow+2, OperatorType, nil)
-		case *gopast.IncDecStmt:
+		case *xgoast.IncDecStmt:
 			addToken(node.TokPos, node.TokPos+2, OperatorType, nil)
-		case *gopast.AssignStmt:
+		case *xgoast.AssignStmt:
 			opLen := len(node.Tok.String())
-			addToken(node.TokPos, node.TokPos+goptoken.Pos(opLen), OperatorType, nil)
-		case *gopast.GoStmt:
-			addToken(node.Go, node.Go+goptoken.Pos(len("go")), KeywordType, nil)
-		case *gopast.DeferStmt:
-			addToken(node.Defer, node.Defer+goptoken.Pos(len("defer")), KeywordType, nil)
-		case *gopast.ReturnStmt:
-			addToken(node.Return, node.Return+goptoken.Pos(len("return")), KeywordType, nil)
-		case *gopast.BranchStmt:
+			addToken(node.TokPos, node.TokPos+xgotoken.Pos(opLen), OperatorType, nil)
+		case *xgoast.GoStmt:
+			addToken(node.Go, node.Go+xgotoken.Pos(len("go")), KeywordType, nil)
+		case *xgoast.DeferStmt:
+			addToken(node.Defer, node.Defer+xgotoken.Pos(len("defer")), KeywordType, nil)
+		case *xgoast.ReturnStmt:
+			addToken(node.Return, node.Return+xgotoken.Pos(len("return")), KeywordType, nil)
+		case *xgoast.BranchStmt:
 			opLen := len(node.Tok.String())
-			addToken(node.TokPos, node.TokPos+goptoken.Pos(opLen), KeywordType, nil)
-		case *gopast.BlockStmt:
+			addToken(node.TokPos, node.TokPos+xgotoken.Pos(opLen), KeywordType, nil)
+		case *xgoast.BlockStmt:
 			addToken(node.Lbrace, node.Lbrace+1, OperatorType, nil)
 			addToken(node.Rbrace, node.Rbrace+1, OperatorType, nil)
-		case *gopast.IfStmt:
-			addToken(node.If, node.If+goptoken.Pos(len("if")), KeywordType, nil)
-		case *gopast.CaseClause:
+		case *xgoast.IfStmt:
+			addToken(node.If, node.If+xgotoken.Pos(len("if")), KeywordType, nil)
+		case *xgoast.CaseClause:
 			if node.List == nil {
-				addToken(node.Case, node.Case+goptoken.Pos(len("default")), KeywordType, nil)
+				addToken(node.Case, node.Case+xgotoken.Pos(len("default")), KeywordType, nil)
 			} else {
-				addToken(node.Case, node.Case+goptoken.Pos(len("case")), KeywordType, nil)
+				addToken(node.Case, node.Case+xgotoken.Pos(len("case")), KeywordType, nil)
 			}
-		case *gopast.SwitchStmt:
-			addToken(node.Switch, node.Switch+goptoken.Pos(len("switch")), KeywordType, nil)
-		case *gopast.TypeSwitchStmt:
-			addToken(node.Switch, node.Switch+goptoken.Pos(len("switch")), KeywordType, nil)
-		case *gopast.CommClause:
+		case *xgoast.SwitchStmt:
+			addToken(node.Switch, node.Switch+xgotoken.Pos(len("switch")), KeywordType, nil)
+		case *xgoast.TypeSwitchStmt:
+			addToken(node.Switch, node.Switch+xgotoken.Pos(len("switch")), KeywordType, nil)
+		case *xgoast.CommClause:
 			if node.Comm == nil {
-				addToken(node.Case, node.Case+goptoken.Pos(len("default")), KeywordType, nil)
+				addToken(node.Case, node.Case+xgotoken.Pos(len("default")), KeywordType, nil)
 			} else {
-				addToken(node.Case, node.Case+goptoken.Pos(len("case")), KeywordType, nil)
+				addToken(node.Case, node.Case+xgotoken.Pos(len("case")), KeywordType, nil)
 			}
 			addToken(node.Colon, node.Colon+1, OperatorType, nil)
-		case *gopast.SelectStmt:
-			addToken(node.Select, node.Select+goptoken.Pos(len("select")), KeywordType, nil)
-		case *gopast.ForStmt:
-			addToken(node.For, node.For+goptoken.Pos(len("for")), KeywordType, nil)
-		case *gopast.RangeStmt:
-			addToken(node.For, node.For+goptoken.Pos(len("for")), KeywordType, nil)
+		case *xgoast.SelectStmt:
+			addToken(node.Select, node.Select+xgotoken.Pos(len("select")), KeywordType, nil)
+		case *xgoast.ForStmt:
+			addToken(node.For, node.For+xgotoken.Pos(len("for")), KeywordType, nil)
+		case *xgoast.RangeStmt:
+			addToken(node.For, node.For+xgotoken.Pos(len("for")), KeywordType, nil)
 			if !node.NoRangeOp {
-				addToken(node.For+goptoken.Pos(len("for")+1), node.For+goptoken.Pos(len("for range")), KeywordType, nil)
+				addToken(node.For+xgotoken.Pos(len("for")+1), node.For+xgotoken.Pos(len("for range")), KeywordType, nil)
 			}
-			if node.Tok != goptoken.ILLEGAL {
-				addToken(node.TokPos, node.TokPos+goptoken.Pos(len(node.Tok.String())), OperatorType, nil)
+			if node.Tok != xgotoken.ILLEGAL {
+				addToken(node.TokPos, node.TokPos+xgotoken.Pos(len(node.Tok.String())), OperatorType, nil)
 			}
-		case *gopast.LambdaExpr:
+		case *xgoast.LambdaExpr:
 			addToken(node.Rarrow, node.Rarrow+2, OperatorType, nil)
 			if node.LhsHasParen {
 				addToken(node.First, node.First+1, OperatorType, nil)
@@ -436,37 +436,37 @@ func (s *Server) textDocumentSemanticTokensFull(params *SemanticTokensParams) (t
 				addToken(node.Rarrow+2, node.Rarrow+3, OperatorType, nil)
 				addToken(node.Last-1, node.Last, OperatorType, nil)
 			}
-		case *gopast.LambdaExpr2:
+		case *xgoast.LambdaExpr2:
 			addToken(node.Rarrow, node.Rarrow+2, OperatorType, nil)
 			if node.LhsHasParen {
 				addToken(node.First, node.First+1, OperatorType, nil)
 				addToken(node.Rarrow-1, node.Rarrow, OperatorType, nil)
 			}
-		case *gopast.ForPhrase:
-			addToken(node.For, node.For+goptoken.Pos(len("for")), KeywordType, nil)
+		case *xgoast.ForPhrase:
+			addToken(node.For, node.For+xgotoken.Pos(len("for")), KeywordType, nil)
 			addToken(node.TokPos, node.TokPos+2, OperatorType, nil)
 			if node.IfPos.IsValid() {
-				addToken(node.IfPos, node.IfPos+goptoken.Pos(len("if")), KeywordType, nil)
+				addToken(node.IfPos, node.IfPos+xgotoken.Pos(len("if")), KeywordType, nil)
 			}
-		case *gopast.ForPhraseStmt:
-			addToken(node.For, node.For+goptoken.Pos(len("for")), KeywordType, nil)
+		case *xgoast.ForPhraseStmt:
+			addToken(node.For, node.For+xgotoken.Pos(len("for")), KeywordType, nil)
 			addToken(node.TokPos, node.TokPos+2, OperatorType, nil)
 			if node.IfPos.IsValid() {
-				addToken(node.IfPos, node.IfPos+goptoken.Pos(len("if")), KeywordType, nil)
+				addToken(node.IfPos, node.IfPos+xgotoken.Pos(len("if")), KeywordType, nil)
 			}
 			if node.Body != nil {
 				addToken(node.Body.Lbrace, node.Body.Lbrace+1, OperatorType, nil)
 				addToken(node.Body.Rbrace, node.Body.Rbrace+1, OperatorType, nil)
 			}
-		case *gopast.ComprehensionExpr:
+		case *xgoast.ComprehensionExpr:
 			addToken(node.Lpos, node.Lpos+1, OperatorType, nil)
 			addToken(node.Rpos, node.Rpos+1, OperatorType, nil)
-			if kvExpr, ok := node.Elt.(*gopast.KeyValueExpr); ok {
+			if kvExpr, ok := node.Elt.(*xgoast.KeyValueExpr); ok {
 				addToken(kvExpr.Colon, kvExpr.Colon+1, OperatorType, nil)
 			}
-		case *gopast.Ellipsis:
+		case *xgoast.Ellipsis:
 			addToken(node.Ellipsis, node.Ellipsis+3, OperatorType, nil)
-		case *gopast.ElemEllipsis:
+		case *xgoast.ElemEllipsis:
 			addToken(node.Ellipsis, node.Ellipsis+3, OperatorType, nil)
 		}
 		return true
