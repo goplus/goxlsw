@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/types"
 	"testing"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIdentAtPosition(t *testing.T) {
-	proj := gop.NewProject(nil, map[string]gop.File{
-		"main.gop": file(`
+	proj := xgo.NewProject(nil, map[string]xgo.File{
+		"main.xgo": file(`
 var longVarName = 1
 var short = 2
 
@@ -38,9 +38,9 @@ func test() {
 	println(result)
 }
 `),
-	}, gop.FeatAll)
+	}, xgo.FeatAll)
 
-	astFile, err := proj.AST("main.gop")
+	astFile, err := proj.AST("main.xgo")
 	require.NoError(t, err)
 
 	// Get positions for all identifiers.
@@ -137,8 +137,8 @@ func test() {
 	})
 
 	t.Run("OverlappingIdentifiers", func(t *testing.T) {
-		projOverlap := gop.NewProject(nil, map[string]gop.File{
-			"main.gop": file(`
+		projOverlap := xgo.NewProject(nil, map[string]xgo.File{
+			"main.xgo": file(`
 var i = 1
 var ii = 2
 
@@ -146,9 +146,9 @@ func test() {
 	result := i + ii
 }
 `),
-		}, gop.FeatAll)
+		}, xgo.FeatAll)
 
-		astFileOverlap, err := projOverlap.AST("main.gop")
+		astFileOverlap, err := projOverlap.AST("main.xgo")
 		require.NoError(t, err)
 
 		fsetOverlap := projOverlap.Fset
@@ -177,7 +177,7 @@ func test() {
 
 		// Wrong filename.
 		wrongFilenamePos := token.Position{
-			Filename: "wrong.gop",
+			Filename: "wrong.xgo",
 			Line:     2,
 			Column:   5,
 		}
@@ -191,8 +191,8 @@ func test() {
 }
 
 func TestDefIdentFor(t *testing.T) {
-	proj := gop.NewProject(nil, map[string]gop.File{
-		"main.gop": file(`
+	proj := xgo.NewProject(nil, map[string]xgo.File{
+		"main.xgo": file(`
 var x = 1
 var y = x + 2
 
@@ -201,7 +201,7 @@ func test() {
 	println(z)
 }
 `),
-	}, gop.FeatAll)
+	}, xgo.FeatAll)
 
 	_, typeInfo, _, _ := proj.TypeInfo()
 	require.NotNil(t, typeInfo)
@@ -244,8 +244,8 @@ func test() {
 }
 
 func TestRefIdentsFor(t *testing.T) {
-	proj := gop.NewProject(nil, map[string]gop.File{
-		"main.gop": file(`
+	proj := xgo.NewProject(nil, map[string]xgo.File{
+		"main.xgo": file(`
 var x = 1
 var y = x + 2
 
@@ -254,7 +254,7 @@ func test() {
 	println(z, x)
 }
 `),
-	}, gop.FeatAll)
+	}, xgo.FeatAll)
 
 	_, typeInfo, _, _ := proj.TypeInfo()
 	require.NotNil(t, typeInfo)

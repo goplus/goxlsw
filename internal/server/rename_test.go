@@ -296,7 +296,7 @@ var (
 	Bullet     Bullet
 )
 
-run "assets", {Title: "Bullet (by Go+)"}
+run "assets", {Title: "Bullet (by XGo)"}
 `),
 			"MyAircraft.spx": []byte(`
 onStart => {

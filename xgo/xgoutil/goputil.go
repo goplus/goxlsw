@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package goputil
+package xgoutil
 
 import (
 	"go/constant"
@@ -23,13 +23,13 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo"
 )
 
-// RangeASTSpecs iterates all Go+ AST specs.
-func RangeASTSpecs(proj *gop.Project, tok token.Token, f func(spec ast.Spec)) {
+// RangeASTSpecs iterates all XGo AST specs.
+func RangeASTSpecs(proj *xgo.Project, tok token.Token, f func(spec ast.Spec)) {
 	proj.RangeASTFiles(func(_ string, file *ast.File) bool {
 		for _, decl := range file.Decls {
 			if decl, ok := decl.(*ast.GenDecl); ok && decl.Tok == tok {
@@ -44,7 +44,7 @@ func RangeASTSpecs(proj *gop.Project, tok token.Token, f func(spec ast.Spec)) {
 
 // IsDefinedInClassFieldsDecl reports whether the given object is defined in
 // the class fields declaration of an AST file.
-func IsDefinedInClassFieldsDecl(proj *gop.Project, obj types.Object) bool {
+func IsDefinedInClassFieldsDecl(proj *xgo.Project, obj types.Object) bool {
 	_, typeInfo, _, _ := proj.TypeInfo()
 	defIdent := DefIdentFor(typeInfo, obj)
 	if defIdent == nil {

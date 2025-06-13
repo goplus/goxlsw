@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"slices"
 
-	gopast "github.com/goplus/gop/ast"
-	"github.com/goplus/goxlsw/gop"
-	"github.com/goplus/goxlsw/gop/goputil"
+	xgoast "github.com/goplus/xgo/ast"
+	"github.com/goplus/xgolsw/xgo"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // spxEventHandlerFuncNameRE is the regular expression of the spx event handler
@@ -39,17 +39,17 @@ func GetSimplifiedTypeString(typ types.Type) string {
 
 // SelectorTypeNameForIdent returns the selector type name for the given
 // identifier. It returns empty string if no selector can be inferred.
-func SelectorTypeNameForIdent(proj *gop.Project, ident *gopast.Ident) string {
-	astFile := goputil.NodeASTFile(proj, ident)
+func SelectorTypeNameForIdent(proj *xgo.Project, ident *xgoast.Ident) string {
+	astFile := xgoutil.NodeASTFile(proj, ident)
 	if astFile == nil {
 		return ""
 	}
 
 	typeInfo := getTypeInfo(proj)
 
-	if path, _ := goputil.PathEnclosingInterval(astFile, ident.Pos(), ident.End()); len(path) > 0 {
+	if path, _ := xgoutil.PathEnclosingInterval(astFile, ident.Pos(), ident.End()); len(path) > 0 {
 		for _, node := range slices.Backward(path) {
-			sel, ok := node.(*gopast.SelectorExpr)
+			sel, ok := node.(*xgoast.SelectorExpr)
 			if !ok {
 				continue
 			}
@@ -58,7 +58,7 @@ func SelectorTypeNameForIdent(proj *gop.Project, ident *gopast.Ident) string {
 				continue
 			}
 
-			switch typ := goputil.DerefType(tv.Type).(type) {
+			switch typ := xgoutil.DerefType(tv.Type).(type) {
 			case *types.Named:
 				obj := typ.Obj()
 				typeName := obj.Name()
@@ -81,9 +81,9 @@ func SelectorTypeNameForIdent(proj *gop.Project, ident *gopast.Ident) string {
 	}
 	if IsInSpxPkg(obj) {
 		astFileScope := typeInfo.Scopes[astFile]
-		innermostScope := goputil.InnermostScopeAt(proj, ident.Pos())
-		if innermostScope == astFileScope || (astFile.HasShadowEntry() && goputil.InnermostScopeAt(proj, astFile.ShadowEntry.Pos()) == innermostScope) {
-			spxFile := goputil.NodeFilename(proj, ident)
+		innermostScope := xgoutil.InnermostScopeAt(proj, ident.Pos())
+		if innermostScope == astFileScope || (astFile.HasShadowEntry() && xgoutil.InnermostScopeAt(proj, astFile.ShadowEntry.Pos()) == innermostScope) {
+			spxFile := xgoutil.NodeFilename(proj, ident)
 			if spxFileBaseName := path.Base(spxFile); spxFileBaseName == "main.spx" {
 				return "Game"
 			}
@@ -100,13 +100,13 @@ func SelectorTypeNameForIdent(proj *gop.Project, ident *gopast.Ident) string {
 			if def == nil {
 				continue
 			}
-			named, ok := goputil.DerefType(def.Type()).(*types.Named)
-			if !ok || named.Obj().Pkg() != obj.Pkg() || !goputil.IsNamedStructType(named) {
+			named, ok := xgoutil.DerefType(def.Type()).(*types.Named)
+			if !ok || named.Obj().Pkg() != obj.Pkg() || !xgoutil.IsNamedStructType(named) {
 				continue
 			}
 
 			var typeName string
-			goputil.WalkStruct(named, func(member types.Object, selector *types.Named) bool {
+			xgoutil.WalkStruct(named, func(member types.Object, selector *types.Named) bool {
 				if field, ok := member.(*types.Var); ok && field == obj {
 					typeName = selector.Obj().Name()
 					return false
@@ -126,7 +126,7 @@ func SelectorTypeNameForIdent(proj *gop.Project, ident *gopast.Ident) string {
 			return ""
 		}
 
-		switch typ := goputil.DerefType(recv.Type()).(type) {
+		switch typ := xgoutil.DerefType(recv.Type()).(type) {
 		case *types.Named:
 			obj := typ.Obj()
 			typeName := obj.Name()

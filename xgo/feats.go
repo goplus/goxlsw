@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gop
+package xgo
 
 import (
 	"fmt"
@@ -22,12 +22,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/parser"
-	"github.com/goplus/gop/scanner"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
-	"github.com/goplus/goxlsw/pkgdoc"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/parser"
+	"github.com/goplus/xgo/scanner"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
+	"github.com/goplus/xgolsw/pkgdoc"
 	"github.com/qiniu/x/errors"
 )
 
@@ -55,7 +55,7 @@ func buildAST(proj *Project, path string, file File) (ret any, err error) {
 		}
 	}()
 	mode := parserMode
-	if !strings.HasSuffix(path, ".gop") { // TODO(xsw): use gopmod
+	if !strings.HasSuffix(path, ".xgo") && !strings.HasSuffix(path, ".gop") { // TODO(xsw): use xgomod
 		mode |= parser.ParseGoPlusClass
 	}
 	f, e := parser.ParseEntry(proj.Fset, path, file.Content, parser.Config{
@@ -69,7 +69,7 @@ type astRet struct {
 	err  error
 }
 
-// AST returns the AST of a Go+ source file.
+// AST returns the AST of an XGo source file.
 func (p *Project) AST(path string) (file *ast.File, err error) {
 	c, err := p.FileCache("ast", path)
 	if err != nil {
@@ -79,7 +79,7 @@ func (p *Project) AST(path string) (file *ast.File, err error) {
 	return ret.file, ret.err
 }
 
-// ASTFiles returns the AST of all Go+ source files.
+// ASTFiles returns the AST of all XGo source files.
 func (p *Project) ASTFiles() (name string, ret []*ast.File, err error) {
 	name, err = p.RangeASTFiles(func(_ string, f *ast.File) bool {
 		ret = append(ret, f)
@@ -132,7 +132,7 @@ type typeInfoRet struct {
 	astErr error
 }
 
-// TypeInfo returns the type information of a Go+ project.
+// TypeInfo returns the type information of an XGo project.
 func (p *Project) TypeInfo() (pkg *types.Package, info *typesutil.Info, err, astErr error) {
 	c, err := p.Cache("typeinfo")
 	if err != nil {
@@ -144,12 +144,12 @@ func (p *Project) TypeInfo() (pkg *types.Package, info *typesutil.Info, err, ast
 
 // -----------------------------------------------------------------------------
 
-// RangeASTFiles iterates all Go+ AST files.
+// RangeASTFiles iterates all XGo AST files.
 func (p *Project) RangeASTFiles(fn func(path string, f *ast.File) bool) (name string, err error) {
 	var errs scanner.ErrorList
 	p.RangeFiles(func(path string) bool {
-		switch filepath.Ext(path) { // TODO(xsw): use gopmod
-		case ".spx", ".gop", ".gox":
+		switch filepath.Ext(path) { // TODO(xsw): use xgomod
+		case ".spx", ".xgo", ".gop", ".gox":
 			f, e := p.AST(path)
 			if f != nil {
 				if name == "" {
@@ -173,7 +173,7 @@ func (p *Project) RangeASTFiles(fn func(path string, f *ast.File) bool) (name st
 	return
 }
 
-// ASTPackage returns the AST package of a Go+ project.
+// ASTPackage returns the AST package of an XGo project.
 func (p *Project) ASTPackage() (pkg *ast.Package, err error) {
 	pkg = &ast.Package{
 		Files: make(map[string]*ast.File),
@@ -192,10 +192,10 @@ func buildPkgDoc(proj *Project) (ret any, err error) {
 	if err != nil {
 		return
 	}
-	return pkgdoc.NewGop(proj.Path, pkg), nil
+	return pkgdoc.NewXGo(proj.Path, pkg), nil
 }
 
-// PkgDoc returns the package documentation of a Go+ project.
+// PkgDoc returns the package documentation of an XGo project.
 func (p *Project) PkgDoc() (pkg *pkgdoc.PkgDoc, err error) {
 	c, err := p.Cache("pkgdoc")
 	if err != nil {

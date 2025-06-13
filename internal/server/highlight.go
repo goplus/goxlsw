@@ -3,9 +3,9 @@ package server
 import (
 	"slices"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
-	"github.com/goplus/goxlsw/gop/goputil"
+	xgoast "github.com/goplus/xgo/ast"
+	xgotoken "github.com/goplus/xgo/token"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_documentHighlight
@@ -19,7 +19,7 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 	}
 	position := ToPosition(result.proj, astFile, params.Position)
 
-	targetIdent := goputil.IdentAtPosition(result.proj, astFile, position)
+	targetIdent := xgoutil.IdentAtPosition(result.proj, astFile, position)
 	typeInfo := getTypeInfo(result.proj)
 	targetObj := typeInfo.ObjectOf(targetIdent)
 	if targetObj == nil {
@@ -27,11 +27,11 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 	}
 
 	var highlights []DocumentHighlight
-	gopast.Inspect(astFile, func(node gopast.Node) bool {
+	xgoast.Inspect(astFile, func(node xgoast.Node) bool {
 		if node == nil {
 			return true
 		}
-		ident, ok := node.(*gopast.Ident)
+		ident, ok := node.(*xgoast.Ident)
 		if !ok {
 			return true
 		}
@@ -39,7 +39,7 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 		if obj != targetObj {
 			return true
 		}
-		path, _ := goputil.PathEnclosingInterval(astFile, ident.Pos(), ident.End())
+		path, _ := xgoutil.PathEnclosingInterval(astFile, ident.Pos(), ident.End())
 		if len(path) < 2 {
 			return true
 		}
@@ -48,14 +48,14 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 
 		for _, parent := range slices.Backward(path[:len(path)-1]) {
 			switch p := parent.(type) {
-			case *gopast.ValueSpec:
+			case *xgoast.ValueSpec:
 				for _, name := range p.Names {
 					if name == ident {
 						kind = Write
 						break
 					}
 				}
-			case *gopast.Field:
+			case *xgoast.Field:
 				if p.Names != nil {
 					for _, name := range p.Names {
 						if name == ident {
@@ -64,21 +64,21 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 						}
 					}
 				}
-			case *gopast.FuncDecl:
+			case *xgoast.FuncDecl:
 				if p.Name == ident {
 					kind = Write
 				}
-			case *gopast.TypeSpec:
+			case *xgoast.TypeSpec:
 				if p.Name == ident {
 					kind = Write
 				}
-			case *gopast.LabeledStmt:
+			case *xgoast.LabeledStmt:
 				if p.Label == ident {
 					kind = Write
 				}
-			case *gopast.AssignStmt:
+			case *xgoast.AssignStmt:
 				switch p.Tok {
-				case goptoken.ASSIGN:
+				case xgotoken.ASSIGN:
 					for _, lhs := range p.Lhs {
 						if lhs == ident {
 							kind = Write
@@ -93,7 +93,7 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 							}
 						}
 					}
-				case goptoken.DEFINE:
+				case xgotoken.DEFINE:
 					for _, lhs := range p.Lhs {
 						if lhs == ident {
 							kind = Write
@@ -103,19 +103,19 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 				default:
 					kind = Write
 				}
-			case *gopast.IncDecStmt:
+			case *xgoast.IncDecStmt:
 				if p.X == ident {
 					kind = Write
 				}
-			case *gopast.RangeStmt:
+			case *xgoast.RangeStmt:
 				if p.X == ident {
 					kind = Read
 				} else if p.Key == ident || p.Value == ident {
 					kind = Write
 				}
-			case *gopast.TypeSwitchStmt:
+			case *xgoast.TypeSwitchStmt:
 				if p.Assign != nil {
-					if assign, ok := p.Assign.(*gopast.AssignStmt); ok {
+					if assign, ok := p.Assign.(*xgoast.AssignStmt); ok {
 						for _, lhs := range assign.Lhs {
 							if lhs == ident {
 								kind = Write
@@ -124,19 +124,19 @@ func (s *Server) textDocumentDocumentHighlight(params *DocumentHighlightParams) 
 						}
 					}
 				}
-			case *gopast.BinaryExpr,
-				*gopast.UnaryExpr,
-				*gopast.CallExpr,
-				*gopast.CompositeLit,
-				*gopast.IndexExpr,
-				*gopast.ReturnStmt,
-				*gopast.SendStmt:
+			case *xgoast.BinaryExpr,
+				*xgoast.UnaryExpr,
+				*xgoast.CallExpr,
+				*xgoast.CompositeLit,
+				*xgoast.IndexExpr,
+				*xgoast.ReturnStmt,
+				*xgoast.SendStmt:
 				kind = Read
-			case *gopast.KeyValueExpr:
+			case *xgoast.KeyValueExpr:
 				if p.Key == ident || p.Value == ident {
 					kind = Read
 				}
-			case *gopast.SelectorExpr:
+			case *xgoast.SelectorExpr:
 				if p.X == ident {
 					kind = Read
 				}

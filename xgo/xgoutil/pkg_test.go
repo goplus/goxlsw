@@ -1,4 +1,4 @@
-package goputil
+package xgoutil
 
 import (
 	"go/constant"
@@ -8,47 +8,47 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsMarkedAsGopPackage(t *testing.T) {
+func TestIsMarkedAsXGoPackage(t *testing.T) {
 	t.Run("NilPackage", func(t *testing.T) {
-		assert.False(t, IsMarkedAsGopPackage(nil))
+		assert.False(t, IsMarkedAsXGoPackage(nil))
 	})
 
 	t.Run("PackageWithEmptyScope", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
-		assert.False(t, IsMarkedAsGopPackage(pkg))
+		assert.False(t, IsMarkedAsXGoPackage(pkg))
 	})
 
-	t.Run("PackageWithoutGopPackageMarker", func(t *testing.T) {
+	t.Run("PackageWithoutXGoPackageMarker", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
-		assert.False(t, IsMarkedAsGopPackage(pkg))
+		assert.False(t, IsMarkedAsXGoPackage(pkg))
 	})
 
-	t.Run("PackageWithGopPackageMarker", func(t *testing.T) {
-		pkg := types.NewPackage("test", "test")
-		scope := pkg.Scope()
-		scope.Insert(types.NewConst(0, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
-		assert.True(t, IsMarkedAsGopPackage(pkg))
-	})
-
-	t.Run("PackageWithWrongTypeGopPackageMarker", func(t *testing.T) {
+	t.Run("PackageWithXGoPackageMarker", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(0, pkg, GopPackage, types.Typ[types.Int], constant.MakeInt64(1)))
-		assert.False(t, IsMarkedAsGopPackage(pkg))
+		scope.Insert(types.NewConst(0, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		assert.True(t, IsMarkedAsXGoPackage(pkg))
 	})
 
-	t.Run("PackageWithWrongValueGopPackageMarker", func(t *testing.T) {
+	t.Run("PackageWithWrongTypeXGoPackageMarker", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(0, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(false)))
-		assert.False(t, IsMarkedAsGopPackage(pkg))
+		scope.Insert(types.NewConst(0, pkg, XGoPackage, types.Typ[types.Int], constant.MakeInt64(1)))
+		assert.False(t, IsMarkedAsXGoPackage(pkg))
 	})
 
-	t.Run("PackageWithNonConstGopPackageMarker", func(t *testing.T) {
+	t.Run("PackageWithWrongValueXGoPackageMarker", func(t *testing.T) {
 		pkg := types.NewPackage("test", "test")
 		scope := pkg.Scope()
-		scope.Insert(types.NewVar(0, pkg, GopPackage, types.Typ[types.UntypedBool]))
-		assert.False(t, IsMarkedAsGopPackage(pkg))
+		scope.Insert(types.NewConst(0, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(false)))
+		assert.False(t, IsMarkedAsXGoPackage(pkg))
+	})
+
+	t.Run("PackageWithNonConstXGoPackageMarker", func(t *testing.T) {
+		pkg := types.NewPackage("test", "test")
+		scope := pkg.Scope()
+		scope.Insert(types.NewVar(0, pkg, XGoPackage, types.Typ[types.UntypedBool]))
+		assert.False(t, IsMarkedAsXGoPackage(pkg))
 	})
 }
 

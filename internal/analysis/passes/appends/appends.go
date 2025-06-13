@@ -4,12 +4,12 @@ import (
 	_ "embed"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/goxlsw/internal/analysis/ast/inspector"
-	"github.com/goplus/goxlsw/internal/analysis/passes/inspect"
-	"github.com/goplus/goxlsw/internal/analysis/passes/internal/analysisutil"
-	"github.com/goplus/goxlsw/internal/analysis/passes/internal/typeutil"
-	"github.com/goplus/goxlsw/internal/analysis/protocol"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgolsw/internal/analysis/ast/inspector"
+	"github.com/goplus/xgolsw/internal/analysis/passes/inspect"
+	"github.com/goplus/xgolsw/internal/analysis/passes/internal/analysisutil"
+	"github.com/goplus/xgolsw/internal/analysis/passes/internal/typeutil"
+	"github.com/goplus/xgolsw/internal/analysis/protocol"
 )
 
 //go:embed doc.go

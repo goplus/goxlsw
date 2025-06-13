@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import (
 	"path"
 	"strings"
 
-	gopast "github.com/goplus/gop/ast"
-	goptoken "github.com/goplus/gop/token"
+	xgoast "github.com/goplus/xgo/ast"
+	xgotoken "github.com/goplus/xgo/token"
 )
 
-// NewGop creates a new [PkgDoc] for a Go+ package.
-func NewGop(pkgPath string, pkg *gopast.Package) *PkgDoc {
+// NewXGo creates a new [PkgDoc] for an XGo package.
+func NewXGo(pkgPath string, pkg *xgoast.Package) *PkgDoc {
 	pkgDoc := &PkgDoc{
 		Path:   pkgPath,
 		Name:   pkg.Name,
@@ -51,26 +51,26 @@ func NewGop(pkgPath string, pkg *gopast.Package) *PkgDoc {
 		}
 		spxBaseSelectorTypeDoc := pkgDoc.typeDoc(spxBaseSelectorTypeName)
 
-		var firstVarBlock *gopast.GenDecl
+		var firstVarBlock *xgoast.GenDecl
 		for _, decl := range astFile.Decls {
 			switch decl := decl.(type) {
-			case *gopast.GenDecl:
-				if firstVarBlock == nil && decl.Tok == goptoken.VAR {
+			case *xgoast.GenDecl:
+				if firstVarBlock == nil && decl.Tok == xgotoken.VAR {
 					firstVarBlock = decl
 				}
 
 				for _, spec := range decl.Specs {
 					var doc string
 					switch spec := spec.(type) {
-					case *gopast.ValueSpec:
+					case *xgoast.ValueSpec:
 						if spec.Doc != nil {
 							doc = spec.Doc.Text()
 						}
-					case *gopast.TypeSpec:
+					case *xgoast.TypeSpec:
 						if spec.Doc != nil {
 							doc = spec.Doc.Text()
 						}
-					case *gopast.ImportSpec:
+					case *xgoast.ImportSpec:
 						if spec.Doc != nil {
 							doc = spec.Doc.Text()
 						}
@@ -80,21 +80,21 @@ func NewGop(pkgPath string, pkg *gopast.Package) *PkgDoc {
 					}
 
 					switch spec := spec.(type) {
-					case *gopast.ValueSpec:
+					case *xgoast.ValueSpec:
 						for _, name := range spec.Names {
 							switch decl.Tok {
-							case goptoken.VAR:
+							case xgotoken.VAR:
 								if decl == firstVarBlock {
 									spxBaseSelectorTypeDoc.Fields[name.Name] = doc
 								} else {
 									pkgDoc.Vars[name.Name] = doc
 								}
-							case goptoken.CONST:
+							case xgotoken.CONST:
 								pkgDoc.Consts[name.Name] = doc
 							}
 						}
-					case *gopast.TypeSpec:
-						if structType, ok := spec.Type.(*gopast.StructType); ok {
+					case *xgoast.TypeSpec:
+						if structType, ok := spec.Type.(*xgoast.StructType); ok {
 							typeDoc := pkgDoc.typeDoc(spec.Name.Name)
 							typeDoc.Doc = doc
 							for _, field := range structType.Fields.List {
@@ -104,7 +104,7 @@ func NewGop(pkgPath string, pkg *gopast.Package) *PkgDoc {
 								}
 
 								if len(field.Names) == 0 {
-									ident, ok := field.Type.(*gopast.Ident)
+									ident, ok := field.Type.(*xgoast.Ident)
 									if !ok {
 										continue
 									}
@@ -118,7 +118,7 @@ func NewGop(pkgPath string, pkg *gopast.Package) *PkgDoc {
 						}
 					}
 				}
-			case *gopast.FuncDecl:
+			case *xgoast.FuncDecl:
 				if decl.Shadow {
 					continue
 				}
@@ -133,10 +133,10 @@ func NewGop(pkgPath string, pkg *gopast.Package) *PkgDoc {
 					recvTypeDoc = spxBaseSelectorTypeDoc
 				} else if len(decl.Recv.List) == 1 {
 					recvType := decl.Recv.List[0].Type
-					if star, ok := recvType.(*gopast.StarExpr); ok {
+					if star, ok := recvType.(*xgoast.StarExpr); ok {
 						recvType = star.X
 					}
-					recvTypeName := recvType.(*gopast.Ident).Name
+					recvTypeName := recvType.(*xgoast.Ident).Name
 					recvTypeDoc = pkgDoc.typeDoc(recvTypeName)
 				}
 

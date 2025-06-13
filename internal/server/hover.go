@@ -4,7 +4,7 @@ import (
 	"go/doc"
 	"strings"
 
-	"github.com/goplus/goxlsw/gop/goputil"
+	"github.com/goplus/xgolsw/xgo/xgoutil"
 )
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification#textDocument_hover
@@ -31,7 +31,7 @@ func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
 		}, nil
 	}
 
-	ident := goputil.IdentAtPosition(result.proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(result.proj, astFile, position)
 	if ident == nil {
 		// Check if the position is within an import declaration.
 		// If so, return the package documentation.

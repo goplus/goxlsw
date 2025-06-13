@@ -1,13 +1,13 @@
-package goputil
+package xgoutil
 
 import (
 	"go/constant"
 	"go/types"
 	"testing"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/token"
-	"github.com/goplus/gop/x/typesutil"
+	"github.com/goplus/xgo/ast"
+	"github.com/goplus/xgo/token"
+	"github.com/goplus/xgo/x/typesutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -417,7 +417,7 @@ func TestWalkCallExprArgs(t *testing.T) {
 		assert.Equal(t, 1, walkCallCount)
 	})
 
-	t.Run("CallExprWithGopPackageGoptMethod", func(t *testing.T) {
+	t.Run("CallExprWithXGoPackageXGotMethod", func(t *testing.T) {
 		ident := &ast.Ident{Name: "Gopt_Sprite_Move"}
 		arg1 := &ast.Ident{Name: "arg1"}
 		expr := &ast.CallExpr{
@@ -427,7 +427,7 @@ func TestWalkCallExprArgs(t *testing.T) {
 
 		pkg := types.NewPackage("test", "test")
 		scope := pkg.Scope()
-		scope.Insert(types.NewConst(0, pkg, GopPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
+		scope.Insert(types.NewConst(0, pkg, XGoPackage, types.Typ[types.UntypedBool], constant.MakeBool(true)))
 
 		recv := types.NewParam(token.NoPos, pkg, "recv", types.Typ[types.Int])
 		param1 := types.NewParam(token.NoPos, pkg, "p1", types.Typ[types.Int])

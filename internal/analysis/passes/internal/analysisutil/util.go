@@ -86,15 +86,15 @@ func MustExtractDoc(content, name string) string {
 // the same source and formatted appropriately.
 func ExtractDoc(content, name string) (string, error) {
 	if content == "" {
-		return "", fmt.Errorf("empty Go+ source file")
+		return "", fmt.Errorf("empty XGo source file")
 	}
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, "", content, parser.ParseComments|parser.PackageClauseOnly)
 	if err != nil {
-		return "", fmt.Errorf("not a Go+ source file")
+		return "", fmt.Errorf("not an XGo source file")
 	}
 	if f.Doc == nil {
-		return "", fmt.Errorf("a Go+ source file has no package doc comment")
+		return "", fmt.Errorf("an XGo source file has no package doc comment")
 	}
 	for _, section := range strings.Split(f.Doc.Text(), "\n# ") {
 		if body := strings.TrimPrefix(section, "Analyzer "+name); body != section &&
