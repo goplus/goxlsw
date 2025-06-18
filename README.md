@@ -159,77 +159,6 @@ type SpxResourceUri = string
 with no changes (no change was required).
 - error: code and message set in case when rename could not be performed for any reason.
 
-### Definition lookup
-
-The `spx.getDefinitions` command retrieves definition identifiers at a given position in a document.
-
-*Request:*
-
-- method: [`workspace/executeCommand`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#workspace_executeCommand)
-- params: [`ExecuteCommandParams`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#executeCommandParams)
-defined as follows:
-
-```typescript
-interface ExecuteCommandParams {
-  /**
-   * The identifier of the actual command handler.
-   */
-  command: 'spx.getDefinitions'
-
-  /**
-   * Arguments that the command should be invoked with.
-   */
-  arguments: SpxGetDefinitionsParams[]
-}
-```
-
-```typescript
-/**
- * Parameters to get definitions at a specific position in a document.
- */
-interface SpxGetDefinitionsParams extends TextDocumentPositionParams {}
-```
-
-*Response:*
-
-- result: `SpxDefinitionIdentifier[]` | `null` describing the definitions found at the given position. `null` indicates
-  no definitions were found.
-- error: code and message set in case when definitions could not be retrieved for any reason.
-
-```typescript
-/**
- * The identifier of a definition.
- */
-interface SpxDefinitionIdentifier {
-  /**
-   * Full name of source package.
-   * If not provided, it's assumed to be kind-statement.
-   * If `main`, it's the current user package.
-   * Examples:
-   * - `fmt`
-   * - `github.com/goplus/spx/v2`
-   * - `main`
-   */
-  package?: string;
-
-  /**
-   * Exported name of the definition.
-   * If not provided, it's assumed to be kind-package.
-   * Examples:
-   * - `Println`
-   * - `Sprite`
-   * - `Sprite.turn`
-   * - `for_statement_with_single_condition`
-   */
-  name?: string;
-
-  /**
-   * Overload Identifier.
-   */
-  overloadId?: string;
-}
-```
-
 ### Input slots lookup
 
 The `spx.getInputSlots` command retrieves all modifiable items (input slots) in a document, which can be used to
@@ -581,5 +510,39 @@ interface CompletionItemData {
    * The corresponding definition of the completion item.
    */
   definition?: SpxDefinitionIdentifier
+}
+```
+
+```typescript
+/**
+ * The identifier of a definition.
+ */
+interface SpxDefinitionIdentifier {
+  /**
+   * Full name of source package.
+   * If not provided, it's assumed to be kind-statement.
+   * If `main`, it's the current user package.
+   * Examples:
+   * - `fmt`
+   * - `github.com/goplus/spx/v2`
+   * - `main`
+   */
+  package?: string;
+
+  /**
+   * Exported name of the definition.
+   * If not provided, it's assumed to be kind-package.
+   * Examples:
+   * - `Println`
+   * - `Sprite`
+   * - `Sprite.turn`
+   * - `for_statement_with_single_condition`
+   */
+  name?: string;
+
+  /**
+   * Overload Identifier.
+   */
+  overloadId?: string;
 }
 ```

@@ -28,16 +28,6 @@ func (s *Server) workspaceExecuteCommand(params *ExecuteCommandParams) (any, err
 			cmdParams = append(cmdParams, cmdParam)
 		}
 		return s.spxRenameResources(cmdParams)
-	case "spx.getDefinitions":
-		var cmdParams []SpxGetDefinitionsParams
-		for _, arg := range params.Arguments {
-			var cmdParam SpxGetDefinitionsParams
-			if err := json.Unmarshal(arg, &cmdParam); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal command argument as SpxGetDefinitionsParams: %w", err)
-			}
-			cmdParams = append(cmdParams, cmdParam)
-		}
-		return s.spxGetDefinitions(cmdParams)
 	case "spx.getInputSlots":
 		var cmdParams []SpxGetInputSlotsParams
 		for _, arg := range params.Arguments {
@@ -107,102 +97,6 @@ func (s *Server) spxRenameResourcesWithCompileResult(result *compileResult, para
 		}
 	}
 	return &workspaceEdit, nil
-}
-
-// spxGetDefinitions gets spx definitions at a specific position in a document.
-func (s *Server) spxGetDefinitions(params []SpxGetDefinitionsParams) ([]SpxDefinitionIdentifier, error) {
-	if l := len(params); l == 0 {
-		return nil, nil
-	} else if l > 1 {
-		return nil, errors.New("spx.getDefinitions only supports one document at a time")
-	}
-	param := params[0]
-
-	result, spxFile, astFile, err := s.compileAndGetASTFileForDocumentURI(param.TextDocument.URI)
-	if err != nil {
-		return nil, err
-	}
-	if astFile == nil {
-		return nil, nil
-	}
-	astFileScope := getTypeInfo(result.proj).Scopes[astFile]
-
-	// Find the innermost scope contains the position.
-	pos := PosAt(result.proj, astFile, param.Position)
-	if !pos.IsValid() {
-		return nil, nil
-	}
-	innermostScope := xgoutil.InnermostScopeAt(result.proj, pos)
-	if innermostScope == nil {
-		return nil, nil
-	}
-	isInSpxEventHandler := result.isInSpxEventHandler(pos)
-
-	var defIDs []SpxDefinitionIdentifier
-	seenDefIDs := make(map[string]struct{})
-	addDefID := func(defID SpxDefinitionIdentifier) {
-		if _, ok := seenDefIDs[defID.String()]; ok {
-			return
-		}
-		seenDefIDs[defID.String()] = struct{}{}
-		defIDs = append(defIDs, defID)
-	}
-	addDefs := func(defs ...SpxDefinition) {
-		defIDs = slices.Grow(defIDs, len(defs))
-		for _, def := range defs {
-			addDefID(def.ID)
-		}
-	}
-
-	// Add local definitions from innermost scope and its parents.
-	for scope := innermostScope; scope != nil && scope != types.Universe; scope = scope.Parent() {
-		isInMainScope := innermostScope == astFileScope && scope == getPkg(result.proj).Scope()
-		for _, name := range scope.Names() {
-			obj := scope.Lookup(name)
-			if obj == nil {
-				continue
-			}
-			addDefID(SpxDefinitionIdentifier{
-				Package: ToPtr(obj.Pkg().Name()),
-				Name:    ToPtr(obj.Name()),
-			})
-
-			isThis := name == "this"
-			isSpxFileMatch := spxFile == name+".spx" || (spxFile == result.mainSpxFile && name == "Game")
-			isMainScopeObj := isInMainScope && isSpxFileMatch
-			if !isThis && !isMainScopeObj {
-				continue
-			}
-			named, ok := xgoutil.DerefType(obj.Type()).(*types.Named)
-			if !ok || !xgoutil.IsNamedStructType(named) {
-				continue
-			}
-
-			for _, def := range result.spxDefinitionsForNamedStruct(named) {
-				if isInSpxEventHandler && def.ID.Name != nil {
-					name := *def.ID.Name
-					if idx := strings.LastIndex(name, "."); idx >= 0 {
-						name = name[idx+1:]
-					}
-					if IsSpxEventHandlerFuncName(name) {
-						continue
-					}
-				}
-				addDefID(def.ID)
-			}
-		}
-	}
-
-	// Add other definitions.
-	addDefs(GetSpxPkgDefinitions()...)
-	addDefs(GetMathPkgSpxDefinitions()...)
-	addDefs(GetBuiltinSpxDefinitions()...)
-	addDefs(GeneralSpxDefinitions...)
-	if innermostScope == astFileScope {
-		addDefs(FileScopeSpxDefinitions...)
-	}
-
-	return defIDs, nil
 }
 
 // spxGetInputSlots gets input slots in a document.
