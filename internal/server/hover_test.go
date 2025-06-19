@@ -62,8 +62,14 @@ onStart => {
 	imagePoint.X = 100
 }
 onTouchStart "MySprite", => {}
+onBackdrop "背景1", => {
+	animate "animation1"
+	getWidget(Monitor, "count")
+}
 `),
-			"assets/index.json":                  []byte(`{}`),
+			"assets/index.json": []byte(`{
+				"backdrops": [{"x":0,"y":0,"faceRight":0,"bitmapResolution":2,"name":"背景1","path":"背景1.png","builder_id":"ftoSWm9sCEin7Ft8JV3Lz"}]
+			}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume1"}]}`),
 			"assets/sounds/MySound/index.json":   []byte(`{}`),
 		}
@@ -463,6 +469,63 @@ onTouchStart "MySprite", => {}
 				End:   Position{Line: 8, Character: 23},
 			},
 		}, onTouchStartFirstArgHover)
+
+		onBackdropArgHover, err := s.textDocumentHover(&HoverParams{
+			TextDocumentPositionParams: TextDocumentPositionParams{
+				TextDocument: TextDocumentIdentifier{URI: "file:///MySprite.spx"},
+				Position:     Position{Line: 9, Character: 13},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, onBackdropArgHover)
+		assert.Equal(t, &Hover{
+			Contents: MarkupContent{
+				Kind:  Markdown,
+				Value: "<resource-preview resource=\"spx://resources/backdrops/背景1\" />\n",
+			},
+			Range: Range{
+				Start: Position{Line: 9, Character: 11},
+				End:   Position{Line: 9, Character: 16},
+			},
+		}, onBackdropArgHover)
+
+		animateArgHover, err := s.textDocumentHover(&HoverParams{
+			TextDocumentPositionParams: TextDocumentPositionParams{
+				TextDocument: TextDocumentIdentifier{URI: "file:///MySprite.spx"},
+				Position:     Position{Line: 10, Character: 18},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, animateArgHover)
+		assert.Equal(t, &Hover{
+			Contents: MarkupContent{
+				Kind:  Markdown,
+				Value: "<resource-preview resource=\"spx://resources/sprites/MySprite/animations/animation1\" />\n",
+			},
+			Range: Range{
+				Start: Position{Line: 10, Character: 9},
+				End:   Position{Line: 10, Character: 21},
+			},
+		}, animateArgHover)
+
+		getWidgetArgHover, err := s.textDocumentHover(&HoverParams{
+			TextDocumentPositionParams: TextDocumentPositionParams{
+				TextDocument: TextDocumentIdentifier{URI: "file:///MySprite.spx"},
+				Position:     Position{Line: 11, Character: 27},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, getWidgetArgHover)
+		assert.Equal(t, &Hover{
+			Contents: MarkupContent{
+				Kind:  Markdown,
+				Value: "<resource-preview resource=\"spx://resources/widgets/count\" />\n",
+			},
+			Range: Range{
+				Start: Position{Line: 11, Character: 20},
+				End:   Position{Line: 11, Character: 27},
+			},
+		}, getWidgetArgHover)
 	})
 
 	t.Run("InvalidPosition", func(t *testing.T) {

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"go/doc"
 	"strings"
 
@@ -9,46 +10,52 @@ import (
 
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification#textDocument_hover
 func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
-	result, _, astFile, err := s.compileAndGetASTFileForDocumentURI(params.TextDocument.URI)
-	if err != nil {
-		return nil, err
+	proj := s.getProjWithFile()
+	if proj == nil {
+		return nil, nil
 	}
+
+	spxFile, err := s.fromDocumentURI(params.TextDocument.URI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file path from document URI %q: %w", params.TextDocument.URI, err)
+	}
+
+	astFile, _ := proj.AST(spxFile)
 	if astFile == nil {
 		return nil, nil
 	}
 	if !astFile.Pos().IsValid() {
 		return nil, nil
 	}
-	position := ToPosition(result.proj, astFile, params.Position)
+	position := ToPosition(proj, astFile, params.Position)
 
-	if spxResourceRef := result.spxResourceRefAtASTFilePosition(astFile, position); spxResourceRef != nil {
+	if spxResourceRef := spxResourceRefAtASTFilePosition(proj, astFile, position); spxResourceRef != nil {
 		return &Hover{
 			Contents: MarkupContent{
 				Kind:  Markdown,
 				Value: spxResourceRef.ID.URI().HTML(),
 			},
-			Range: RangeForNode(result.proj, spxResourceRef.Node),
+			Range: RangeForNode(proj, spxResourceRef.Node),
 		}, nil
 	}
-
-	ident := xgoutil.IdentAtPosition(result.proj, astFile, position)
+	ident := xgoutil.IdentAtPosition(proj, astFile, position)
 	if ident == nil {
 		// Check if the position is within an import declaration.
 		// If so, return the package documentation.
-		rpkg := result.spxImportsAtASTFilePosition(astFile, position)
+		rpkg := spxImportsAtASTFilePosition(proj, astFile, position)
 		if rpkg != nil {
 			return &Hover{
 				Contents: MarkupContent{
 					Kind:  Markdown,
 					Value: doc.Synopsis(rpkg.Pkg.Doc),
 				},
-				Range: RangeForNode(result.proj, rpkg.Node),
+				Range: RangeForNode(proj, rpkg.Node),
 			}, nil
 		}
 		return nil, nil
 	}
 
-	spxDefs := result.spxDefinitionsForIdent(ident)
+	spxDefs := SpxDefinitionsForIdent(proj, ident)
 	if spxDefs == nil {
 		return nil, nil
 	}
@@ -62,6 +69,6 @@ func (s *Server) textDocumentHover(params *HoverParams) (*Hover, error) {
 			Kind:  Markdown,
 			Value: hoverContent.String(),
 		},
-		Range: RangeForNode(result.proj, ident),
+		Range: RangeForNode(proj, ident),
 	}, nil
 }
