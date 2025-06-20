@@ -27,7 +27,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		emptyLineItems, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -104,7 +104,7 @@ onStart => {
 run "assets", {Title: "My Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -131,7 +131,7 @@ run "assets", {Title: "My Game"}
 run "a
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -151,7 +151,7 @@ run "a
 run "assets", {Title: "My Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -170,7 +170,7 @@ run "assets", {Title: "My Game"}
 run "a
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -189,7 +189,7 @@ run "a
 import "f
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -210,7 +210,7 @@ import (
 	"f
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -231,7 +231,7 @@ import "fmt"
 fmt.
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -255,7 +255,7 @@ onStart => {
 run "assets", {Title: "My Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items1, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -304,7 +304,7 @@ run "assets", {Title: "My Game"}
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -336,7 +336,7 @@ run "assets", {Title: "My Game"}
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -359,7 +359,7 @@ run "assets", {Title: "My Game"}
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sounds/recording/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -386,7 +386,7 @@ run "assets", {Title: "My Game"}
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sounds/recording/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -414,7 +414,7 @@ onClick => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -443,7 +443,7 @@ run "assets", {Title: "My Game"}
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -477,7 +477,7 @@ onClick => {
 			"assets/sprites/Sprite1/index.json": []byte(`{"costumes":[{"name":"Sprite1Costume"}]}`),
 			"assets/sprites/Sprite2/index.json": []byte(`{"costumes":[{"name":"Sprite2Costume"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -499,7 +499,7 @@ onClick => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -528,7 +528,7 @@ onClick => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items1, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -568,7 +568,7 @@ onClick => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items1, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -609,7 +609,7 @@ onStart => {}
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -644,7 +644,7 @@ onStart => {}
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -678,7 +678,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -719,7 +719,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -748,7 +748,7 @@ onStar => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -772,7 +772,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -801,7 +801,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -823,7 +823,7 @@ onStart => {
 )
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -844,7 +844,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -870,7 +870,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -898,7 +898,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -925,7 +925,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		items, err := s.textDocumentCompletion(&CompletionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{

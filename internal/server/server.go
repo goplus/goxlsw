@@ -6,6 +6,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/goplus/mod/modload"
 	"github.com/goplus/mod/xgomod"
@@ -32,6 +33,13 @@ type MessageReplier interface {
 // FileMapGetter is a function that returns a map of file names to [vfs.MapFile]s.
 type FileMapGetter func() map[string]vfs.MapFile
 
+// Scheduler is an interface for task scheduling.
+type Scheduler interface {
+	// Sched yields the processor, allowing other routines to run.
+	// "routines" here refers to not just goroutines, but also other tasks, for example, Javascript event loop in browsers.
+	Sched()
+}
+
 // Server is the core language server implementation that handles LSP messages.
 type Server struct {
 	workspaceRootURI DocumentURI
@@ -39,6 +47,10 @@ type Server struct {
 	replier          MessageReplier
 	analyzers        []*analysis.Analyzer
 	fileMapGetter    FileMapGetter // TODO(wyvern): Remove this field.
+	// Set of queued request IDs.
+	// Queued requests are those that have been received by the server but not yet started processing.
+	queuedRequests sync.Map
+	scheduler      Scheduler
 }
 
 func (s *Server) getProj() *xgo.Project {
@@ -51,8 +63,20 @@ func (s *Server) getProjWithFile() *xgo.Project {
 	return proj
 }
 
+// enqueueRequest adds the request with the given ID to the queue.
+func (s *Server) enqueueRequest(id jsonrpc2.ID) {
+	s.queuedRequests.Store(id, struct{}{})
+}
+
+// dequeueRequest removes the request with the given ID from the queue.
+// It returns true if the request was found and removed, false otherwise.
+func (s *Server) dequeueRequest(id jsonrpc2.ID) bool {
+	_, ok := s.queuedRequests.LoadAndDelete(id)
+	return ok
+}
+
 // New creates a new Server instance.
-func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter) *Server {
+func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter, scheduler Scheduler) *Server {
 	mod := xgomod.New(modload.Default)
 	if err := mod.ImportClasses(); err != nil {
 		panic(fmt.Errorf("failed to import classes: %w", err))
@@ -67,6 +91,7 @@ func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter) 
 		replier:          replier,
 		analyzers:        initAnalyzers(true),
 		fileMapGetter:    fileMapGetter,
+		scheduler:        scheduler,
 	}
 }
 
@@ -264,6 +289,12 @@ func (s *Server) handleNotification(n *jsonrpc2.Notification) error {
 		return errors.New("TODO")
 	case "exit":
 		return nil // Protocol conformance only.
+	case "$/cancelRequest":
+		var params CancelParams
+		if err := UnmarshalJSON(n.Params(), &params); err != nil {
+			return fmt.Errorf("failed to parse cancelRequest params: %w", err)
+		}
+		return s.cancelRequest(&params)
 	case "textDocument/didOpen":
 		var params DidOpenTextDocumentParams
 		if err := UnmarshalJSON(n.Params(), &params); err != nil {
@@ -318,7 +349,12 @@ func (s *Server) run(id jsonrpc2.ID, fn func() error) {
 
 // runWithResponse runs the given function in a goroutine and handles the response.
 func (s *Server) runWithResponse(id jsonrpc2.ID, fn func() (any, error)) {
+	s.enqueueRequest(id)
 	s.run(id, func() error {
+		s.scheduler.Sched() // Do scheduling to receive (cancel) notifications on the fly.
+		if !s.dequeueRequest(id) {
+			return s.replyError(id, jsonrpc2.NewError(int64(RequestCancelled), "Request cancelled"))
+		}
 		result, err := fn()
 		resp, err := jsonrpc2.NewResponse(id, result, err)
 		if err != nil {
@@ -326,6 +362,19 @@ func (s *Server) runWithResponse(id jsonrpc2.ID, fn func() (any, error)) {
 		}
 		return s.replier.ReplyMessage(resp)
 	})
+}
+
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#cancelRequest
+func (s *Server) cancelRequest(params *CancelParams) error {
+	if params == nil {
+		return fmt.Errorf("cancelRequest: missing or invalid parameters")
+	}
+	id, err := jsonrpc2.MakeID(params.ID)
+	if err != nil {
+		return fmt.Errorf("cancelRequest: %w", err)
+	}
+	s.dequeueRequest(id)
+	return nil
 }
 
 // replyError replies to the client with an error response.

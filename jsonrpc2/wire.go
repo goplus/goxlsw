@@ -121,6 +121,26 @@ func (wireVersionTag) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MakeID coerces the given Go value to an ID. The value is assumed to be the
+// default JSON marshaling of a Request identifier -- nil, float64, or string.
+//
+// Returns an error if the value type was a valid Request ID type.
+//
+// TODO: ID can't be a json.Marshaler/Unmarshaler, because we want to omitzero.
+// Simplify this package by making ID json serializable once we can rely on
+// omitzero.
+func MakeID(v any) (ID, error) {
+	switch v := v.(type) {
+	case nil:
+		return ID{}, nil
+	case float64:
+		return NewIntID(int64(v)), nil
+	case string:
+		return NewStringID(v), nil
+	}
+	return ID{}, fmt.Errorf("%w: invalid ID type %T", ErrParse, v)
+}
+
 // NewIntID returns a new numerical request ID.
 func NewIntID(v int64) ID { return ID{number: v} }
 

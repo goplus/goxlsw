@@ -25,7 +25,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		mainSpxMySpriteDef, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -77,7 +77,7 @@ onStart => {
 var x int
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -95,7 +95,7 @@ var x int
 this.run "assets", {Title: "My Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -113,7 +113,7 @@ this.run "assets", {Title: "My Game"}
 var x int
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -132,7 +132,7 @@ import "fmt"
 fmt.println "Hello, spx!"
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -159,7 +159,7 @@ import fmt2 "fmt"
 fmt2.println "Hello, spx!"
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -185,7 +185,7 @@ fmt2.println "Hello, spx!"
 var x int
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentDefinition(&DefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -208,7 +208,7 @@ type MyType struct {
 var x MyType
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentTypeDefinition(&TypeDefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -238,7 +238,7 @@ var (
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentTypeDefinition(&TypeDefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -256,7 +256,7 @@ var (
 var x int
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentTypeDefinition(&TypeDefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -274,7 +274,7 @@ var x int
 var x int
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		def, err := s.textDocumentTypeDefinition(&TypeDefinitionParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{

@@ -79,6 +79,7 @@ type (
 	InitializeParams     = protocol.InitializeParams
 	InitializedParams    = protocol.InitializedParams
 	ExecuteCommandParams = protocol.ExecuteCommandParams
+	CancelParams         = protocol.CancelParams
 
 	DidOpenTextDocumentParams   = protocol.DidOpenTextDocumentParams
 	DidChangeTextDocumentParams = protocol.DidChangeTextDocumentParams
@@ -143,6 +144,8 @@ const (
 
 	Type      = protocol.Type
 	Parameter = protocol.Parameter
+
+	RequestCancelled = protocol.RequestCancelled
 )
 
 // UnmarshalJSON unmarshals msg into the variable pointed to by params.
