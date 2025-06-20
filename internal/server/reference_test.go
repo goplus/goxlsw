@@ -25,7 +25,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		mainSpxMySpriteRef, err := s.textDocumentReferences(&ReferenceParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -93,7 +93,7 @@ onStart => {
 		m := map[string][]byte{
 			"main.spx": []byte(`var x int`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		refs, err := s.textDocumentReferences(&ReferenceParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{

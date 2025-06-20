@@ -25,7 +25,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		mySpriteHighlights, err := s.textDocumentDocumentHighlight(&DocumentHighlightParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{

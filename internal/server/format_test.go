@@ -22,7 +22,7 @@ type Score int
 run "assets",    { Title:    "Bullet (by XGo)" }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -53,7 +53,7 @@ run "assets", {Title: "Bullet (by XGo)"}
 		m := map[string][]byte{
 			"main.xgo": []byte(`echo "Hello, XGo!"`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.xgo"},
 		}
@@ -64,7 +64,7 @@ run "assets", {Title: "Bullet (by XGo)"}
 	})
 
 	t.Run("FileNotFound", func(t *testing.T) {
-		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}))
+		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///notexist.spx"},
 		}
@@ -78,7 +78,7 @@ run "assets", {Title: "Bullet (by XGo)"}
 		m := map[string][]byte{
 			"main.spx": []byte(`run "assets", {Title: "Bullet (by XGo)"}` + "\n"),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -96,7 +96,7 @@ var MyAircraft MyAircraft
 !InvalidSyntax
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -154,7 +154,7 @@ var (
 ) // Trailing comment for the last var block.
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -218,7 +218,7 @@ var (
 var Bullet Bullet
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -254,7 +254,7 @@ var (
 run "assets", {Title: "My Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -276,7 +276,7 @@ onClick => {
 run "assets", {Title: "My Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -298,7 +298,7 @@ onKey [KeyLeft, KeyRight], (key) => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -341,7 +341,7 @@ onTouchStart 123, (s) => { // type mismatch
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///MySprite.spx"},
 		}
@@ -377,7 +377,7 @@ onTouchStart 123, (s) => { // type mismatch
 		m := map[string][]byte{
 			"main.spx": []byte(``),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -391,7 +391,7 @@ onTouchStart 123, (s) => { // type mismatch
 		m := map[string][]byte{
 			"main.spx": []byte(` `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -436,7 +436,7 @@ run "assets", {Title: "My Game"}
 // floating comment5
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -490,7 +490,7 @@ var a int // trailing comment for var a
 func test() {} // trailing comment for func test
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -531,7 +531,7 @@ func (Foo) Bar() {}
 func Bar() {}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -575,7 +575,7 @@ var (
 run "assets", {Title: "Snake Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -629,7 +629,7 @@ var (
 run "assets", {Title: "Game"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -686,7 +686,7 @@ var (
 run "assets", {Title: "Game With Comments"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -734,7 +734,7 @@ var name string = "Player"
 run "assets", {Title: "Single Vars"}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}
@@ -780,7 +780,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		params := &DocumentFormattingParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
 		}

@@ -59,6 +59,13 @@ func fileMapGetter(files map[string][]byte) func() map[string]vfs.MapFile {
 	}
 }
 
+// MockScheduler implements [Scheduler]
+type MockScheduler struct{}
+
+func (s *MockScheduler) Sched() {
+	time.Sleep(1 * time.Millisecond)
+}
+
 func TestServerCancellation(t *testing.T) {
 	t.Run("CancelRequest", func(t *testing.T) {
 		files := map[string][]byte{
@@ -68,7 +75,7 @@ echo x
 `),
 		}
 		replier := &mockReplier{}
-		s := New(newMapFSWithoutModTime(files), replier, fileMapGetter(files))
+		s := New(newMapFSWithoutModTime(files), replier, fileMapGetter(files), &MockScheduler{})
 
 		requestID1 := jsonrpc2.NewStringID("test-request-1")
 		requestID2 := jsonrpc2.NewStringID("test-request-2")
@@ -129,7 +136,7 @@ echo x
 			"main.spx": []byte(`var x = 100`),
 		}
 		replier := &mockReplier{}
-		s := New(newMapFSWithoutModTime(files), replier, fileMapGetter(files))
+		s := New(newMapFSWithoutModTime(files), replier, fileMapGetter(files), &MockScheduler{})
 
 		testCases := []struct {
 			name string

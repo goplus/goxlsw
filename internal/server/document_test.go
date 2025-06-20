@@ -34,7 +34,7 @@ onStart => {
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume1"}],"fAnimations":{"anim1":{}}}`),
 			"assets/sounds/MySound/index.json":   []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		linksForMainSpx, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -253,7 +253,7 @@ onStart => {
 		m := map[string][]byte{
 			"main.xgo": []byte(`echo "Hello, XGo!"`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.xgo"},
@@ -263,7 +263,7 @@ onStart => {
 	})
 
 	t.Run("FileNotFound", func(t *testing.T) {
-		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}))
+		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///notexist.spx"},
@@ -282,7 +282,7 @@ var (
 			"assets/index.json":                []byte(`{}`),
 			"assets/sounds/MySound/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -326,7 +326,7 @@ var (
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -373,7 +373,7 @@ var (
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -419,7 +419,7 @@ var (
 			"assets/index.json":                []byte(`{}`),
 			"assets/sounds/MySound/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -460,7 +460,7 @@ var (
 			"main.spx":          []byte(`type`),
 			"assets/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		links, err := s.textDocumentDocumentLink(&DocumentLinkParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},

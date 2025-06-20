@@ -26,7 +26,7 @@ func (t MyType2) myMethod() {}
 var x MyInterface
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		implementations, err := s.textDocumentImplementation(&ImplementationParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -63,7 +63,7 @@ type MyType struct{}
 func (t MyType) myMethod() {}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		implementation, err := s.textDocumentImplementation(&ImplementationParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -90,7 +90,7 @@ func (t MyType) myMethod() {}
 type MyType struct{}
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		implementation, err := s.textDocumentImplementation(&ImplementationParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{

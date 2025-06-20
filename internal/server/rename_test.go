@@ -25,7 +25,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		range1, err := s.textDocumentPrepareRename(&PrepareRenameParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -79,7 +79,7 @@ onClick => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		range1, err := s.textDocumentPrepareRename(&PrepareRenameParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -116,7 +116,7 @@ onClick => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		range1, err := s.textDocumentPrepareRename(&PrepareRenameParams{
 			TextDocumentPositionParams: TextDocumentPositionParams{
@@ -149,7 +149,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		workspaceEdit, err := s.textDocumentRename(&RenameParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -200,7 +200,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		workspaceEdit, err := s.textDocumentRename(&RenameParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///MySprite.spx"},
@@ -249,7 +249,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		workspaceEdit, err := s.textDocumentRename(&RenameParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -324,7 +324,7 @@ onCloned => {
 			"assets/sprites/MyAircraft/index.json": []byte(`{}`),
 			"assets/sprites/Bullet/index.json":     []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		workspaceEdit, err := s.textDocumentRename(&RenameParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///Bullet.spx"},
@@ -386,7 +386,7 @@ onClick => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		mainSpxWorkspaceEdit, err := s.textDocumentRename(&RenameParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -420,7 +420,7 @@ onStart => {
 `),
 			"assets/index.json": []byte(`{"backdrops":[{"name":"backdrop1","path":"backdrop1.png"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -467,7 +467,7 @@ onStart => {
 `),
 			"assets/index.json": []byte(`{"backdrops":[{"name":"backdrop1","path":"backdrop1.png"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -507,7 +507,7 @@ onStart => {
 `),
 			"assets/index.json": []byte(`{"backdrops":[{"name":"backdrop1","path":"backdrop1.png"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -555,7 +555,7 @@ run "assets", {Title: "My Game"}
 `),
 			"assets/index.json": []byte(`{"backdrops":[{"name":"backdrop1","path":"backdrop1.png"},{"name":"backdrop2","path":"backdrop2.png"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -588,7 +588,7 @@ onStart => {
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 			"assets/sounds/Sound1/index.json":    []byte(`{"path":"sound1.wav"}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -638,7 +638,7 @@ run "assets", {Title: "My Game"}
 			"assets/sounds/Sound1/index.json": []byte(`{"path":"sound1.wav"}`),
 			"assets/sounds/Sound2/index.json": []byte(`{"path":"sound2.wav"}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -670,7 +670,7 @@ onStart => {
 			"assets/index.json":                 []byte(`{}`),
 			"assets/sprites/Sprite1/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -727,7 +727,7 @@ onStart => {
 			"assets/index.json":                 []byte(`{}`),
 			"assets/sprites/Sprite1/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -799,7 +799,7 @@ onStart => {
 			"assets/sprites/Sprite1/index.json": []byte(`{}`),
 			"assets/sprites/Sprite2/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -832,7 +832,7 @@ func invalidFunc() {
 			"assets/index.json":                 []byte(`{}`),
 			"assets/sprites/Sprite1/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.True(t, result.hasErrorSeverityDiagnostic)
@@ -874,7 +874,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume1"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -924,7 +924,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume1"},{"name":"costume2"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -954,7 +954,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"costumes":[{"name":"costume1"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -986,7 +986,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"fAnimations":{"anim1":{}}}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -1036,7 +1036,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"fAnimations":{"anim1":{},"anim2":{}}}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -1066,7 +1066,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{"fAnimations":{"anim1":{}}}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -1093,7 +1093,7 @@ onStart => {
 `),
 			"assets/index.json": []byte(`{"zorder":[{"name":"widget1"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)
@@ -1128,7 +1128,7 @@ onStart => {
 `),
 			"assets/index.json": []byte(`{"zorder":[{"name":"widget1"},{"name":"widget2"}]}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 		result, err := s.compile()
 		require.NoError(t, err)
 		require.False(t, result.hasErrorSeverityDiagnostic)

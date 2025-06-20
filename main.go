@@ -43,7 +43,8 @@ func NewSpxls(this js.Value, args []js.Value) any {
 		files := filesProvider.Invoke()
 		return ConvertJSFilesToMap(files)
 	}
-	s.server = server.New(xgo.NewProject(nil, filesMapGetter, xgo.FeatAll), s, filesMapGetter)
+	scheduler := &JSScheduler{}
+	s.server = server.New(xgo.NewProject(nil, filesMapGetter, xgo.FeatAll), s, filesMapGetter, scheduler)
 	return js.ValueOf(map[string]any{
 		"handleMessage": JSFuncOfWithError(s.HandleMessage),
 	})
@@ -89,6 +90,21 @@ func (s *Spxls) ReplyMessage(m jsonrpc2.Message) (err error) {
 	message := js.Global().Get("JSON").Call("parse", string(rawMessage))
 	s.messageReplier.Invoke(message)
 	return nil
+}
+
+// JSScheduler implements [server.Scheduler]
+type JSScheduler struct{}
+
+// Sched yields the processor in browsers to allow JavaScript event loop to run.
+// We use `setTimeout` to ensure microtask queue is processed, which is necessary
+// for the browser to handle incoming messages and other events.
+func (s *JSScheduler) Sched() {
+	done := make(chan bool, 1)
+	js.Global().Get("setTimeout").Invoke(js.FuncOf(func(this js.Value, p []js.Value) any {
+		done <- true
+		return nil
+	}), js.ValueOf(0))
+	<-done
 }
 
 // SetCustomPkgdataZip sets custom package data that will be used with higher

@@ -31,7 +31,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		params := &InlayHintParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -75,7 +75,7 @@ onStart => {
 		m := map[string][]byte{
 			"main.spx": []byte(``),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		params := &InlayHintParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -91,7 +91,7 @@ onStart => {
 	})
 
 	t.Run("NonExistentFile", func(t *testing.T) {
-		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}))
+		s := New(newMapFSWithoutModTime(map[string][]byte{}), nil, fileMapGetter(map[string][]byte{}), &MockScheduler{})
 
 		params := &InlayHintParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///nonexistent.spx"},
@@ -127,7 +127,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		params := &InlayHintParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},
@@ -194,7 +194,7 @@ onStart => {
 			"assets/sprites/MySprite/index.json":    []byte(`{}`),
 			"assets/sprites/OtherSprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -274,7 +274,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -295,7 +295,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -318,7 +318,7 @@ onStart => {
 		m := map[string][]byte{
 			"main.spx": []byte(``),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -349,7 +349,7 @@ onStart => {
 			"assets/index.json":                  []byte(`{}`),
 			"assets/sprites/MySprite/index.json": []byte(`{}`),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -394,7 +394,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -413,7 +413,7 @@ onStart => {
 }
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		result, _, astFile, err := s.compileAndGetASTFileForDocumentURI("file:///main.spx")
 		require.NoError(t, err)
@@ -510,7 +510,7 @@ func TestSortInlayHints(t *testing.T) {
 )
 `),
 		}
-		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m))
+		s := New(newMapFSWithoutModTime(m), nil, fileMapGetter(m), &MockScheduler{})
 
 		params := &InlayHintParams{
 			TextDocument: TextDocumentIdentifier{URI: "file:///main.spx"},

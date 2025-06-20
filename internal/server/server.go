@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/goplus/mod/modload"
 	"github.com/goplus/mod/xgomod"
@@ -34,6 +33,13 @@ type MessageReplier interface {
 // FileMapGetter is a function that returns a map of file names to [vfs.MapFile]s.
 type FileMapGetter func() map[string]vfs.MapFile
 
+// Scheduler is an interface for task scheduling.
+type Scheduler interface {
+	// Sched yields the processor, allowing other routines to run.
+	// "routines" here refers to not just goroutines, but also other tasks, for example, Javascript event loop in browsers.
+	Sched()
+}
+
 // Server is the core language server implementation that handles LSP messages.
 type Server struct {
 	workspaceRootURI DocumentURI
@@ -44,6 +50,7 @@ type Server struct {
 	// Set of queued request IDs.
 	// Queued requests are those that have been received by the server but not yet started processing.
 	queuedRequests sync.Map
+	scheduler      Scheduler
 }
 
 func (s *Server) getProj() *xgo.Project {
@@ -69,7 +76,7 @@ func (s *Server) dequeueRequest(id jsonrpc2.ID) bool {
 }
 
 // New creates a new Server instance.
-func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter) *Server {
+func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter, scheduler Scheduler) *Server {
 	mod := xgomod.New(modload.Default)
 	if err := mod.ImportClasses(); err != nil {
 		panic(fmt.Errorf("failed to import classes: %w", err))
@@ -84,6 +91,7 @@ func New(mapFS *vfs.MapFS, replier MessageReplier, fileMapGetter FileMapGetter) 
 		replier:          replier,
 		analyzers:        initAnalyzers(true),
 		fileMapGetter:    fileMapGetter,
+		scheduler:        scheduler,
 	}
 }
 
@@ -343,7 +351,7 @@ func (s *Server) run(id jsonrpc2.ID, fn func() error) {
 func (s *Server) runWithResponse(id jsonrpc2.ID, fn func() (any, error)) {
 	s.enqueueRequest(id)
 	s.run(id, func() error {
-		time.Sleep(1 * time.Millisecond) // Allow the JS event loop to receive (cancel) notifications on the fly.
+		s.scheduler.Sched() // Do scheduling to receive (cancel) notifications on the fly.
 		if !s.dequeueRequest(id) {
 			return s.replyError(id, jsonrpc2.NewError(int64(RequestCancelled), "Request cancelled"))
 		}
